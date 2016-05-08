@@ -6,77 +6,158 @@
         xmlns:local="clr-namespace:spyweex_client_wpf"
         xmlns:tools="clr-namespace:MyApp.Tools"
         mc:Ignorable="d"
-        Height="{Binding Source={x:Static SystemParameters.PrimaryScreenHeight}, Converter={tools:RatioConverter}, ConverterParameter='0.9' }" 
-        Width="{Binding Source={x:Static SystemParameters.PrimaryScreenWidth}, Converter={tools:RatioConverter}, ConverterParameter='0.9' }" 
+        Height="{Binding Source={x:Static SystemParameters.PrimaryScreenHeight}, Converter={tools:RatioConverter}, ConverterParameter='0.91' }" 
+        Width="{Binding Source={x:Static SystemParameters.PrimaryScreenWidth}, Converter={tools:RatioConverter}, ConverterParameter='0.91' }" 
         WindowStartupLocation="CenterScreen"
-        Title="Spy-weex" MinWidth="800" MinHeight="600" Background="White"
+        Title="Spy-weex" MinWidth="800" MinHeight="600" Background="#FF24282A" Foreground="#3DFFFFFF"
 >
+    <Window.Resources>
+        <Style x:Key="BorderBrushStyle">
+            <Setter Property="Control.BorderBrush" Value="#FFBFBCBC" />
+            <Setter Property="Control.BorderThickness" Value="0,0.5,0,0.5" />
+        </Style>
+        <SolidColorBrush x:Key="SelectedBackgroundBrush" Color="#FF80ABCF" />
+        <SolidColorBrush x:Key="DisabledForegroundBrush" Color="#888" />
 
-    <Menu x:Name="menu" VerticalAlignment="Top" RenderTransformOrigin="0.502,0.474" VerticalContentAlignment="Top" HorizontalContentAlignment="Stretch">
-        <Menu.Resources>
-            <DropShadowEffect x:Key="dropShadow" BlurRadius="6" Direction="315" />
-            <Style x:Key="MenuItemStyle" TargetType="MenuItem">
-                <Setter Property="VerticalContentAlignment" Value="Stretch"/>
-                <Setter Property="HorizontalAlignment" Value="Left"/>
-                <Setter Property="Foreground" Value="White"/>
-                <Setter Property="HorizontalContentAlignment" Value="Left"/>
-                <Setter Property="FontSize" Value="12"/>
-                <Setter Property="Padding" Value="8,6,8,6"/>
-                <Setter Property="Effect" Value="{StaticResource dropShadow}"/>
-            </Style>
-            
-            <ControlTemplate x:Key="MyMenuItemTemplate" TargetType="{x:Type MenuItem}">
-                <Border x:Name="templateRoot" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" Background="{TemplateBinding Background}" SnapsToDevicePixels="True">
-                    <Grid VerticalAlignment="Center">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="Auto"/>
-                            <ColumnDefinition Width="Auto"/>
-                        </Grid.ColumnDefinitions>
-                        <ContentPresenter x:Name="Icon" Content="{TemplateBinding Icon}" ContentSource="Icon" HorizontalAlignment="Center" Height="16" Margin="3" SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" VerticalAlignment="Center" Width="16"/>
-                        <Path x:Name="GlyphPanel" Data="F1M10,1.2L4.7,9.1 4.5,9.1 0,5.2 1.3,3.5 4.3,6.1 8.3,0 10,1.2z" Fill="#FF212121" FlowDirection="LeftToRight" Margin="3" Visibility="Collapsed" VerticalAlignment="Center"/>
-                        <ContentPresenter ContentTemplate="{TemplateBinding HeaderTemplate}" Content="{TemplateBinding Header}" Grid.Column="1" ContentStringFormat="{TemplateBinding HeaderStringFormat}" ContentSource="Header" Margin="{TemplateBinding Padding}" RecognizesAccessKey="True" SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"/>
-                    </Grid>
-                </Border>
-                <ControlTemplate.Triggers>
-                    <Trigger Property="Icon" Value="{x:Null}">
-                        <Setter Property="Visibility" TargetName="Icon" Value="Collapsed"/>
-                    </Trigger>
-                    <Trigger Property="IsChecked" Value="True">
-                        <Setter Property="Visibility" TargetName="GlyphPanel" Value="Visible"/>
-                        <Setter Property="Visibility" TargetName="Icon" Value="Collapsed"/>
-                    </Trigger>
-                    <Trigger Property="IsHighlighted" Value="True">
-                        <Setter Property="Background" TargetName="templateRoot" Value="#3DFFFFFF"/>
-                        <Setter Property="BorderBrush" TargetName="templateRoot" Value="#FF088D20"/>
-                    </Trigger>
-                    <Trigger Property="IsEnabled" Value="False">
-                        <Setter Property="TextElement.Foreground" TargetName="templateRoot" Value="White"/>
-                        <Setter Property="Fill" TargetName="GlyphPanel" Value="#FF8F5858"/>
-                    </Trigger>
-                    <MultiTrigger>
-                        <MultiTrigger.Conditions>
-                            <Condition Property="IsHighlighted" Value="True"/>
-                            <Condition Property="IsEnabled" Value="False"/>
-                        </MultiTrigger.Conditions>
-                        <Setter Property="Background" TargetName="templateRoot" Value="#0A000000"/>
-                        <Setter Property="BorderBrush" TargetName="templateRoot" Value="#21000000"/>
-                    </MultiTrigger>
-                </ControlTemplate.Triggers>
-            </ControlTemplate>
-        </Menu.Resources>
+        <Style x:Key="ListViewItemStyle" TargetType="ListViewItem">
+            <Setter Property="SnapsToDevicePixels" Value="true"/>
+            <Setter Property="OverridesDefaultStyle" Value="true"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ListBoxItem">
+                        <Border Name="Border" Style="{StaticResource BorderBrushStyle}" Padding="2" SnapsToDevicePixels="true" RenderOptions.EdgeMode="Aliased"  Background="Transparent">
+                            <GridViewRowPresenter VerticalAlignment="{TemplateBinding VerticalContentAlignment}"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsSelected" Value="true">
+                                <Setter TargetName="Border" Property="Background" Value="{StaticResource SelectedBackgroundBrush}"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="false">
+                                <Setter Property="Foreground" Value="{StaticResource DisabledForegroundBrush}"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Window.Resources>
+
+    <StackPanel x:Name="MainStackPanel" Margin="0" Uid="UidMainStackPanel">
+
+        <Menu x:Name="menu" VerticalAlignment="Top" RenderTransformOrigin="0.502,0.474" VerticalContentAlignment="Top" HorizontalContentAlignment="Stretch">
+            <Menu.Resources>
+                <DropShadowEffect x:Key="dropShadow" BlurRadius="6" Direction="315" />
+                <Style x:Key="MenuItemStyle" TargetType="MenuItem">
+                    <Setter Property="VerticalContentAlignment" Value="Stretch"/>
+                    <Setter Property="HorizontalAlignment" Value="Left"/>
+                    <Setter Property="Foreground" Value="White"/>
+                    <Setter Property="HorizontalContentAlignment" Value="Left"/>
+                    <Setter Property="FontSize" Value="12"/>
+                    <Setter Property="Padding" Value="8,6,8,6"/>
+                    <Setter Property="Effect" Value="{StaticResource dropShadow}"/>
+                </Style>
+
+                <ControlTemplate x:Key="MyMenuItemTemplate" TargetType="{x:Type MenuItem}">
+                    <Border x:Name="templateRoot" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" Background="{TemplateBinding Background}" SnapsToDevicePixels="True">
+                        <Grid VerticalAlignment="Center">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <ContentPresenter x:Name="Icon" Content="{TemplateBinding Icon}" ContentSource="Icon" HorizontalAlignment="Center" Height="16" Margin="3" SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" VerticalAlignment="Center" Width="16"/>
+                            <Path x:Name="GlyphPanel" Data="F1M10,1.2L4.7,9.1 4.5,9.1 0,5.2 1.3,3.5 4.3,6.1 8.3,0 10,1.2z" Fill="#FF212121" FlowDirection="LeftToRight" Margin="3" Visibility="Collapsed" VerticalAlignment="Center"/>
+                            <ContentPresenter ContentTemplate="{TemplateBinding HeaderTemplate}" Content="{TemplateBinding Header}" Grid.Column="1" ContentStringFormat="{TemplateBinding HeaderStringFormat}" ContentSource="Header" Margin="{TemplateBinding Padding}" RecognizesAccessKey="True" SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"/>
+                        </Grid>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="Icon" Value="{x:Null}">
+                            <Setter Property="Visibility" TargetName="Icon" Value="Collapsed"/>
+                        </Trigger>
+                        <Trigger Property="IsChecked" Value="True">
+                            <Setter Property="Visibility" TargetName="GlyphPanel" Value="Visible"/>
+                            <Setter Property="Visibility" TargetName="Icon" Value="Collapsed"/>
+                        </Trigger>
+                        <Trigger Property="IsHighlighted" Value="True">
+                            <Setter Property="Background" TargetName="templateRoot" Value="#3DFFFFFF"/>
+                            <Setter Property="BorderBrush" TargetName="templateRoot" Value="#FF088D20"/>
+                        </Trigger>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter Property="TextElement.Foreground" TargetName="templateRoot" Value="White"/>
+                            <Setter Property="Fill" TargetName="GlyphPanel" Value="#FF8F5858"/>
+                        </Trigger>
+                        <MultiTrigger>
+                            <MultiTrigger.Conditions>
+                                <Condition Property="IsHighlighted" Value="True"/>
+                                <Condition Property="IsEnabled" Value="False"/>
+                            </MultiTrigger.Conditions>
+                            <Setter Property="Background" TargetName="templateRoot" Value="#0A000000"/>
+                            <Setter Property="BorderBrush" TargetName="templateRoot" Value="#21000000"/>
+                        </MultiTrigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Menu.Resources>
+
+            <Menu.Background>
+                <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
+                    <GradientStop Color="Black" Offset="0"/>
+                    <GradientStop Color="White" Offset="1"/>
+                </LinearGradientBrush>
+            </Menu.Background>
+
+            <MenuItem Header="File" Template="{StaticResource MyMenuItemTemplate}" Style="{StaticResource MenuItemStyle }"/>
+            <MenuItem Header="Edit" Template="{StaticResource MyMenuItemTemplate}" Style="{StaticResource MenuItemStyle }"/>
+            <MenuItem Header="View" Template="{StaticResource MyMenuItemTemplate}" Style="{StaticResource MenuItemStyle }"/>
+            <MenuItem Header="Bind" Template="{StaticResource MyMenuItemTemplate}" Style="{StaticResource MenuItemStyle }"/>
+            <MenuItem Header="Command Promt" Template="{StaticResource MyMenuItemTemplate}" Style="{StaticResource MenuItemStyle }"/>
+            <MenuItem Header="Help" Template="{StaticResource MyMenuItemTemplate}" Style="{StaticResource MenuItemStyle}"/>
+        </Menu>
+
+        <Grid ShowGridLines="True" MinHeight="600">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="0.15*"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="0.3*"/>
+            </Grid.ColumnDefinitions>
+            <ListView x:Name="ConnectionsList" Grid.Column="1" Margin="0" >
+                <ListView.ItemContainerStyle>
+                    <Style BasedOn="{StaticResource ListViewItemStyle }" TargetType="{x:Type ListViewItem}"/>
+                </ListView.ItemContainerStyle>
+
+                <ListView.View>
+                    <GridView>
+                        <GridViewColumn Header="ID" DisplayMemberBinding="{Binding ID}" Width="50"/>
+                        <GridViewColumn Header="IP" DisplayMemberBinding="{Binding IP}" Width="100"/>
+                        <GridViewColumn Header="Username" DisplayMemberBinding="{Binding Username}" Width="100"/>
+                        <GridViewColumn Header="Privileges" DisplayMemberBinding="{Binding Privileges}" Width="70"/>
+                        <GridViewColumn Header="OS" DisplayMemberBinding="{Binding OS}" Width="100"/>
+                        <GridViewColumn Header="Uptime" DisplayMemberBinding="{Binding Uptime}" Width="100"/>
+                        <GridViewColumn Header="Country" DisplayMemberBinding="{Binding Country}" Width="100"/>
+                        <GridViewColumn Header="Cam" DisplayMemberBinding="{Binding Cam}" Width="100"/>
+                        <GridViewColumn Header="Install Date" DisplayMemberBinding="{Binding InstallDate}" Width="100"/>
+                    </GridView>
+                </ListView.View>
+            </ListView>
+        </Grid>
         
-        <Menu.Background>
-            <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
-                <GradientStop Color="Black" Offset="0"/>
-                <GradientStop Color="White" Offset="1"/>
-            </LinearGradientBrush>
-        </Menu.Background>
+        <ToolBarTray MinHeight="35" Background="#FF24282A">
+            <ToolBar Band="0" BandIndex="0" Margin="0">
+                <Button>
+                    <Image Source="app_resources/o_aaf9c168232d5c4d-5.png" Height="16" Width="16" Stretch="Uniform"/>
+                </Button>
+                <Button>
+                    <Image Source="app_resources/o_d4c9c134520e3050-0.png" Stretch="Uniform" Width="16" Height="16"/>
+                </Button>
+                <Button>
+                    <Image Source="app_resources/o_cff4f8d611bfc768-0.png" Height="16" Width="16" Stretch="Uniform"/>
+                </Button>
+                <Button>
+                    <Image Source="app_resources/1458242903_No_entry.png" Height="16" Width="16" Stretch="Uniform"/>
+                </Button>
+            </ToolBar>
+        </ToolBarTray>
+    </StackPanel>
 
-        <MenuItem Header="File" Template="{StaticResource MyMenuItemTemplate}" Style="{StaticResource MenuItemStyle }"/>
-        <MenuItem Header="Edit" Template="{StaticResource MyMenuItemTemplate}" Style="{StaticResource MenuItemStyle }"/>
-        <MenuItem Header="View" Template="{StaticResource MyMenuItemTemplate}" Style="{StaticResource MenuItemStyle }"/>
-        <MenuItem Header="Bind" Template="{StaticResource MyMenuItemTemplate}" Style="{StaticResource MenuItemStyle }"/>
-        <MenuItem Header="Command Promt" Template="{StaticResource MyMenuItemTemplate}" Style="{StaticResource MenuItemStyle }"/>
-        <MenuItem Header="Help" Template="{StaticResource MyMenuItemTemplate}" Style="{StaticResource MenuItemStyle}"/>
-    </Menu>
 </Window>

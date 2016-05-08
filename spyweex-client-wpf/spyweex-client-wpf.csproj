@@ -101,6 +101,35 @@
   <ItemGroup>
     <Resource Include="heisenberg_app.ico" />
   </ItemGroup>
+  <ItemGroup>
+    <Resource Include="app_resources\1458242871_No_entry.png" />
+    <Resource Include="app_resources\no_entry.ico" />
+    <Resource Include="app_resources\Cancel_red.png" />
+    <Resource Include="app_resources\heisenberg_app.ico" />
+    <Resource Include="app_resources\heisenberg_launch.ico" />
+    <Resource Include="app_resources\ip.ico" />
+    <Resource Include="app_resources\start.ico" />
+    <Resource Include="app_resources\stop.ico" />
+    <Resource Include="app_resources\task_cancel.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="app_resources\o_aaf9c168232d5c4d-0.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="app_resources\o_aaf9c168232d5c4d-5.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="app_resources\o_4111b63e16cfbf16-5.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="app_resources\o_d4c9c134520e3050-0.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="app_resources\o_cff4f8d611bfc768-0.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="app_resources\1458242903_No_entry.png" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
