@@ -42,9 +42,8 @@
         </Style>
     </Window.Resources>
 
-    <StackPanel x:Name="MainStackPanel" Margin="0" Uid="UidMainStackPanel">
-
-        <Menu x:Name="menu" VerticalAlignment="Top" RenderTransformOrigin="0.502,0.474" VerticalContentAlignment="Top" HorizontalContentAlignment="Stretch">
+    <DockPanel LastChildFill="True">
+        <Menu x:Name="menu" DockPanel.Dock="Top" VerticalAlignment="Top" RenderTransformOrigin="0.502,0.474" VerticalContentAlignment="Top" HorizontalContentAlignment="Stretch">
             <Menu.Resources>
                 <DropShadowEffect x:Key="dropShadow" BlurRadius="6" Direction="315" />
                 <Style x:Key="MenuItemStyle" TargetType="MenuItem">
@@ -64,7 +63,7 @@
                                 <ColumnDefinition Width="Auto"/>
                                 <ColumnDefinition Width="Auto"/>
                             </Grid.ColumnDefinitions>
-                            <ContentPresenter x:Name="Icon" Content="{TemplateBinding Icon}" ContentSource="Icon" HorizontalAlignment="Center" Height="16" Margin="3" SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" VerticalAlignment="Center" Width="16"/>
+                            <ContentPresenter x:Name="Icon" Content="{TemplateBinding Icon}" ContentSource="Icon" HorizontalAlignment="Center" Height="16" Margin="3" SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" VerticalAlignment="Center" Width="16" Visibility="Visible" Opacity="1"/>
                             <Path x:Name="GlyphPanel" Data="F1M10,1.2L4.7,9.1 4.5,9.1 0,5.2 1.3,3.5 4.3,6.1 8.3,0 10,1.2z" Fill="#FF212121" FlowDirection="LeftToRight" Margin="3" Visibility="Collapsed" VerticalAlignment="Center"/>
                             <ContentPresenter ContentTemplate="{TemplateBinding HeaderTemplate}" Content="{TemplateBinding Header}" Grid.Column="1" ContentStringFormat="{TemplateBinding HeaderStringFormat}" ContentSource="Header" Margin="{TemplateBinding Padding}" RecognizesAccessKey="True" SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"/>
                         </Grid>
@@ -78,8 +77,8 @@
                             <Setter Property="Visibility" TargetName="Icon" Value="Collapsed"/>
                         </Trigger>
                         <Trigger Property="IsHighlighted" Value="True">
-                            <Setter Property="Background" TargetName="templateRoot" Value="#3DFFFFFF"/>
-                            <Setter Property="BorderBrush" TargetName="templateRoot" Value="#FF088D20"/>
+                            <Setter Property="TextElement.Foreground"  TargetName="templateRoot" Value="#FF8AFAFF"/>
+                            <!--<Setter Property="BorderBrush" TargetName="templateRoot" Value="#FF088D20"/>-->
                         </Trigger>
                         <Trigger Property="IsEnabled" Value="False">
                             <Setter Property="TextElement.Foreground" TargetName="templateRoot" Value="White"/>
@@ -98,10 +97,11 @@
             </Menu.Resources>
 
             <Menu.Background>
-                <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
-                    <GradientStop Color="Black" Offset="0"/>
-                    <GradientStop Color="White" Offset="1"/>
-                </LinearGradientBrush>
+                <RadialGradientBrush>
+                    <GradientStop Color="#FF24282A" Offset="0"/>
+                    <GradientStop Color="#FF24282A" Offset="1"/>
+                    <GradientStop Color="#FF4F5151" Offset="0.472"/>
+                </RadialGradientBrush>
             </Menu.Background>
 
             <MenuItem Header="File" Template="{StaticResource MyMenuItemTemplate}" Style="{StaticResource MenuItemStyle }"/>
@@ -112,7 +112,24 @@
             <MenuItem Header="Help" Template="{StaticResource MyMenuItemTemplate}" Style="{StaticResource MenuItemStyle}"/>
         </Menu>
 
-        <Grid ShowGridLines="True" MinHeight="600">
+        <ToolBarTray MinHeight="35" Background="#FF24282A"  DockPanel.Dock="Bottom">
+            <ToolBar Band="0" BandIndex="0" Margin="0">
+                <Button>
+                    <Image Source="app_resources/start.png" Height="16" Width="16" Stretch="Uniform"/>
+                </Button>
+                <Button>
+                    <Image Source="app_resources/stop.png" Stretch="Uniform" Width="16" Height="16"/>
+                </Button>
+                <Button>
+                    <Image Source="app_resources/ip.png" Height="16" Width="16" Stretch="Uniform"/>
+                </Button>
+                <Button>
+                    <Image Source="app_resources/cancel.png" Height="16" Width="16" Stretch="Uniform"/>
+                </Button>
+            </ToolBar>
+        </ToolBarTray>
+
+        <Grid MinHeight="600">
             <Grid.RowDefinitions>
                 <RowDefinition Height="*"/>
             </Grid.RowDefinitions>
@@ -121,13 +138,26 @@
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="0.3*"/>
             </Grid.ColumnDefinitions>
-            <ListView x:Name="ConnectionsList" Grid.Column="1" Margin="0" >
+            <ListView x:Name="ConnectionsList" Grid.Column="1" Margin="0" Background="#FF24282A" >
                 <ListView.ItemContainerStyle>
                     <Style BasedOn="{StaticResource ListViewItemStyle }" TargetType="{x:Type ListViewItem}"/>
                 </ListView.ItemContainerStyle>
-
                 <ListView.View>
                     <GridView>
+                        <GridView.ColumnHeaderContainerStyle>
+                            <Style TargetType="{x:Type GridViewColumnHeader}">
+                                <Setter Property="Background" Value="#24282A" />
+                                <Setter Property="Foreground" Value="#FFFFFF" />
+                                <Style.Triggers>
+                                    <Trigger Property="IsMouseOver" Value="False">
+                                        <Setter Property="Foreground" Value="White"></Setter>
+                                    </Trigger>
+                                    <Trigger Property="IsMouseOver" Value="True">
+                                        <Setter Property="Foreground" Value="Black"></Setter>
+                                    </Trigger>
+                                </Style.Triggers>
+                            </Style>
+                        </GridView.ColumnHeaderContainerStyle>
                         <GridViewColumn Header="ID" DisplayMemberBinding="{Binding ID}" Width="50"/>
                         <GridViewColumn Header="IP" DisplayMemberBinding="{Binding IP}" Width="100"/>
                         <GridViewColumn Header="Username" DisplayMemberBinding="{Binding Username}" Width="100"/>
@@ -141,23 +171,7 @@
                 </ListView.View>
             </ListView>
         </Grid>
-        
-        <ToolBarTray MinHeight="35" Background="#FF24282A">
-            <ToolBar Band="0" BandIndex="0" Margin="0">
-                <Button>
-                    <Image Source="app_resources/o_aaf9c168232d5c4d-5.png" Height="16" Width="16" Stretch="Uniform"/>
-                </Button>
-                <Button>
-                    <Image Source="app_resources/o_d4c9c134520e3050-0.png" Stretch="Uniform" Width="16" Height="16"/>
-                </Button>
-                <Button>
-                    <Image Source="app_resources/o_cff4f8d611bfc768-0.png" Height="16" Width="16" Stretch="Uniform"/>
-                </Button>
-                <Button>
-                    <Image Source="app_resources/1458242903_No_entry.png" Height="16" Width="16" Stretch="Uniform"/>
-                </Button>
-            </ToolBar>
-        </ToolBarTray>
-    </StackPanel>
+
+    </DockPanel>
 
 </Window>
