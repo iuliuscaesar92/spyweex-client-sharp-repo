@@ -5,13 +5,16 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:spyweex_client_wpf"
         xmlns:tools="clr-namespace:MyApp.Tools"
-        xmlns:Themes="clr-namespace:Microsoft.Windows.Themes;assembly=PresentationFramework.Aero2" xmlns:Themes1="clr-namespace:Microsoft.Windows.Themes;assembly=PresentationFramework.Aero" x:Class="spyweex_client_wpf.MainWindow"
+        xmlns:Themes="clr-namespace:Microsoft.Windows.Themes;assembly=PresentationFramework.Aero2" xmlns:Themes1="clr-namespace:Microsoft.Windows.Themes;assembly=PresentationFramework.Aero"
+
+        x:Class="spyweex_client_wpf.MainWindow"
         mc:Ignorable="d"
         Height="{Binding ConverterParameter=0.95, Converter={tools:RatioConverter}, Source={x:Static SystemParameters.PrimaryScreenHeight}}" 
         Width="{Binding ConverterParameter=0.90, Converter={tools:RatioConverter}, Source={x:Static SystemParameters.PrimaryScreenWidth}}" 
         WindowStartupLocation="CenterScreen"
         Title="Spy-weex" MinWidth="800" MinHeight="600" Background="#FF24282A" Foreground="#3DFFFFFF"
->
+        Loaded="Window_Loaded">
+    
     <Window.Resources>
         <Style x:Key="BorderBrushStyle">
             <Setter Property="Control.BorderBrush" Value="#FFBFBCBC" />
@@ -224,6 +227,7 @@
                                     <Themes:SystemDropShadowChrome x:Name="Shdw" Color="Transparent">
                                         <Border x:Name="ToolBarSubMenuBorder" BorderBrush="{StaticResource ToolBarMenuBorder}" BorderThickness="1" Background="{StaticResource ToolBarSubMenuBackground}" RenderOptions.ClearTypeHint="Enabled">
                                             <ToolBarOverflowPanel x:Name="PART_ToolBarOverflowPanel" KeyboardNavigation.DirectionalNavigation="Cycle" FocusVisualStyle="{x:Null}" Focusable="true" Margin="2" SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" KeyboardNavigation.TabNavigation="Cycle" WrapWidth="200"/>
+                                        
                                         </Border>
                                     </Themes:SystemDropShadowChrome>
                                 </Popup>
@@ -362,16 +366,16 @@
                         <GradientStop Color="#FF223040" Offset="0.029"/>
                     </RadialGradientBrush>
                 </ToolBar.Background>
-                <Button>
+                <Button x:Name="Start" Click="btnStart_Clicked">
                     <Image Source="app_resources/start.png" Height="16" Width="16" Stretch="Uniform"/>
                 </Button>
-                <Button>
+                <Button x:Name="Stop" Click="btnStop_Clicked">
                     <Image Source="app_resources/stop.png" Stretch="Uniform" Width="16" Height="16"/>
                 </Button>
-                <Button>
+                <Button x:Name="IP" Click="btnIP_Clicked">
                     <Image Source="app_resources/ip.png" Height="16" Width="16" Stretch="Uniform"/>
                 </Button>
-                <Button>
+                <Button x:Name="Cancel" Click="btnCancel_Clicked">
                     <Image Source="app_resources/cancel.png" Height="16" Width="16" Stretch="Uniform"/>
                 </Button>
             </ToolBar>
@@ -386,7 +390,7 @@
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="0.3*"/>
             </Grid.ColumnDefinitions>
-            <ListView x:Name="ConnectionsList" Grid.Column="1" Margin="0" Background="#FF24282A" >
+            <ListView x:Name="SessionListView" SelectedItem="{Binding Path=SelectedSession}" Grid.Column="1" Margin="0" Background="#FF24282A" >
 
                 <!--<Border x:Name="Border" CornerRadius="10" BorderThickness="2" Background="#FF505050" Padding="2" SnapsToDevicePixels="true" RenderOptions.EdgeMode="Aliased">
                     <Border.BorderBrush>
@@ -448,10 +452,10 @@
                     </StackPanel>
 
                     <StackPanel  x:Name="StackPanelRightOptions" Grid.Column="0" Grid.Row="1" MinHeight="80" VerticalAlignment="Top">
-                        <Button Content="Take Desktop Screen" Style="{StaticResource ButtonStyle}" HorizontalContentAlignment="Stretch" VerticalAlignment="Top" Margin="0,5,0,0"/>
-                        <Button Content="Webcam Screenshot" Style="{StaticResource ButtonStyle}" HorizontalContentAlignment="Stretch" VerticalAlignment="Top" Margin="0,5,0,0"/>
-                        <Button Content="Add user" Style="{StaticResource ButtonStyle}" HorizontalContentAlignment="Stretch" VerticalAlignment="Top" Margin="0,5,0,0"/>
-                        <Button Content="Remove user" Style="{StaticResource ButtonStyle}" HorizontalContentAlignment="Stretch" VerticalAlignment="Top" Margin="0,5,0,0"/>
+                        <Button x:Name="btnDesktopScreen" Content="Take Desktop Screen" Style="{StaticResource ButtonStyle}" HorizontalContentAlignment="Stretch" VerticalAlignment="Top" Margin="0,5,0,0" Click="btnDesktopScreen_Clicked"/>
+                        <Button x:Name="btnWebcamScreen" Content="Webcam Screenshot" Style="{StaticResource ButtonStyle}" HorizontalContentAlignment="Stretch" VerticalAlignment="Top" Margin="0,5,0,0" Click="btnWebcamScreen_Clicked"/>
+                        <Button x:Name="btnAddUser" Content="Add user" Style="{StaticResource ButtonStyle}" HorizontalContentAlignment="Stretch" VerticalAlignment="Top" Margin="0,5,0,0" Click="btnAddUser_Clicked"/>
+                        <Button x:Name="btnRemoveUser" Content="Remove user" Style="{StaticResource ButtonStyle}" HorizontalContentAlignment="Stretch" VerticalAlignment="Top" Margin="0,5,0,0" Click="btnRemoveUser_Clicked"/>
                     </StackPanel>
 
                     <GroupBox x:Name="groupBoxNetworkStatistics" Header="Network"  Grid.Row="2" Margin="5,2,5,0" HorizontalContentAlignment="Center">
@@ -466,13 +470,13 @@
 
                                 <StackPanel Orientation="Horizontal">
                                     <Label x:Name="In" Content="In:" Foreground="AliceBlue"  HorizontalAlignment="Center" Margin="0" Grid.Row="2" VerticalAlignment="Center"/>
-                                    <TextBox x:Name="txtBoxIn" Height="12" Background="#24282A"  IsReadOnly="True" HorizontalAlignment="Left" Width="25" Margin="10,0,0,0"/>
+                                    <TextBox x:Name="txtBoxIn" Height="12" Background="#24282A"  IsReadOnly="True" HorizontalAlignment="Left" Width="90" Margin="10,0,0,0"/>
                                     <Label x:Name="inSizeUnits" Content="KiB" Foreground="AliceBlue"  HorizontalAlignment="Center" Margin="0" Grid.Row="2" VerticalAlignment="Center"/>
 
                                 </StackPanel>
                                 <StackPanel Orientation="Horizontal">
                                     <Label x:Name="Out" Content="Out:" Foreground="AliceBlue"  HorizontalAlignment="Center" Margin="0" Grid.Row="2" VerticalAlignment="Center"/>
-                                    <TextBox x:Name="txtBoxOut" Height="12" Background="#24282A"  IsReadOnly="True"  HorizontalAlignment="Left" Width="25"/>
+                                    <TextBox x:Name="txtBoxOut" Height="12" Background="#24282A"  IsReadOnly="True"  HorizontalAlignment="Left" Width="90"/>
                                     <Label x:Name="outSizeUnits" Content="B" Foreground="AliceBlue"  HorizontalAlignment="Center" Margin="0" Grid.Row="2" VerticalAlignment="Center"/>
 
                                 </StackPanel>
@@ -493,37 +497,38 @@
                         <ColumnDefinition Width="*"/>
                     </Grid.ColumnDefinitions>
                     <StackPanel x:Name="StackPanelFeatureButtons" Grid.Column="0" Grid.Row="0">
-                        <Button Margin="0,0,0,5" Width="64" Height="64" Background="#24282A" BorderBrush="#00707070">
+                        <Button x:Name="btnCmdPrompt" Margin="0,0,0,5" Width="64" Height="64" Background="#24282A" BorderBrush="#00707070" Click="btnCmdPrompt_Clicked">
                             <Image Source="app_resources/cmd.png" Height="64" Width="64" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </Button>
 
-                        <Button Margin="0,0,0,5" Width="64" Height="64" Background="#24282A" BorderBrush="#00707070">
-                            <Image Source="app_resources/keylogger.png" Height="64" Width="64" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        <Button x:Name="btnKeyLoggerWithIcon" Margin="0,0,0,5" Width="64" Height="64" Background="#24282A" BorderBrush="#00707070" Click="btnKeyLogger_Clicked">
+                            <Image Source="app_resources/keylogger.png" Height="64" Width="64" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center" ContextMenuClosing="btnKeylogger_Clicked"/>
                         </Button>
 
-                        <Button Margin="0,0,0,5" Width="64" Height="64" Background="#24282A" BorderBrush="#00707070">
+                        <Button x:Name="btnTaskList" Margin="0,0,0,5" Width="64" Height="64" Background="#24282A" BorderBrush="#00707070" Click="btnTaskList_Clicked">
                             <Image Source="app_resources/tasklist.png" Height="64" Width="64" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </Button>
 
-                        <Button Margin="0,0,0,5" Width="64" Height="64" Background="#24282A" BorderBrush="#00707070">
+                        <Button x:Name="btnDownload" Margin="0,0,0,5" Width="64" Height="64" Background="#24282A" BorderBrush="#00707070" Click="btnDownload_Clicked">
                             <Image Source="app_resources/download.png" Height="64" Width="64" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </Button>
 
-                        <Button Margin="0,0,0,5" Width="64" Height="64" Background="#24282A" BorderBrush="#00707070">
+                        <Button x:Name="btnRDP" Margin="0,0,0,5" Width="64" Height="64" Background="#24282A" BorderBrush="#00707070" Click="btnRDP_Clicked">
                             <Image Source="app_resources/rdp.png" Height="64" Width="64" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </Button>
 
-                        <Button Margin="0,0,0,5" Width="64" Height="64" Background="#24282A" BorderBrush="#00707070">
+                        <Button x:Name="btnShutdown" Margin="0,0,0,5" Width="64" Height="64" Background="#24282A" BorderBrush="#00707070" Click="btnShutdown_Clicked">
                             <Image Source="app_resources/shutdown.png" Height="64" Width="64" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center"/>
 
                         </Button>
                     </StackPanel>
 
                     <StackPanel  x:Name="StackPanelLeftButtons" Grid.Column="0" Grid.Row="1" MinHeight="80" VerticalAlignment="Top" Margin="0,15,0,0">
-                        <Button Content="Keylogger" Style="{StaticResource ButtonStyle}" HorizontalContentAlignment="Stretch" VerticalAlignment="Top" Margin="0,5,0,0"/>
-                        <Button Content="Telnet" Style="{StaticResource ButtonStyle}" HorizontalContentAlignment="Stretch" VerticalAlignment="Top" Margin="0,5,0,0"/>
-                        <Button Content="BSoD" Style="{StaticResource ButtonStyle}" HorizontalContentAlignment="Stretch" VerticalAlignment="Top" Margin="0,5,0,0"/>
-                        <Button Content="Reboot" Style="{StaticResource ButtonStyle}" HorizontalContentAlignment="Stretch" VerticalAlignment="Top" Margin="0,5,0,0"/>
+                        <Button x:Name="btnCookies" Content="Cookies" Style="{StaticResource ButtonStyle}" HorizontalContentAlignment="Stretch" VerticalAlignment="Top" Margin="0,5,0,0" Click="btnCookies_Clicked"/>
+                        <Button x:Name="btnKeylogger" Content="Keylogger" Style="{StaticResource ButtonStyle}" HorizontalContentAlignment="Stretch" VerticalAlignment="Top" Margin="0,5,0,0" Click="btnKeyLogger_Clicked"/>
+                        <Button x:Name="btnTelnet" Content="Telnet" Style="{StaticResource ButtonStyle}" HorizontalContentAlignment="Stretch" VerticalAlignment="Top" Margin="0,5,0,0" Click="btnTelnet_Clicked"/>
+                        <Button x:Name="btnBsod" Content="BSoD" Style="{StaticResource ButtonStyle}" HorizontalContentAlignment="Stretch" VerticalAlignment="Top" Margin="0,5,0,0" Click="btnBsod_Clicked"/>
+                        <Button x:Name="btnReboot" Content="Reboot" Style="{StaticResource ButtonStyle}" HorizontalContentAlignment="Stretch" VerticalAlignment="Top" Margin="0,5,0,0" Click="btnReboot_Clicked"/>
 
                     </StackPanel>
                 </Grid>

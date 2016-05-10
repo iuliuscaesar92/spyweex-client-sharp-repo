@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Globalization;
 using System.Linq;
 using System.Text;
@@ -22,10 +23,131 @@ namespace spyweex_client_wpf
     /// </summary>
     public partial class MainWindow : Window
     {
+        public class Session
+        {
+            public string ID { get; set; }
+            public string IP { get; set; }
+            public string Username { get; set; }
+            public string ComputerName { get; set; }
+            public string Privileges { get; set; }
+            public string OS { get; set; }
+            public string Uptime { get; set; }
+            public string Country { get; set; }
+            public string Cam { get; set; }
+            public string InstallDate { get; set; }
+        }
+
+        /// <summary>
+        /// sessions source for listview.
+        /// </summary>
+        ObservableCollection<Session> sessions = new ObservableCollection<Session>();
+        public Session SelectedSession { get; set; }
+
         public MainWindow()
         {
             InitializeComponent();
         }
+
+        private void Window_Loaded(object sender, RoutedEventArgs e)
+        {
+            SessionListView.ItemsSource = sessions;
+        }
+
+        private void btnStart_Clicked(object sender, RoutedEventArgs e)
+        {
+
+        }
+
+        private void btnStop_Clicked(object sender, RoutedEventArgs e)
+        {
+
+        }
+
+        private void btnCancel_Clicked(object sender, RoutedEventArgs e)
+        {
+
+        }
+
+        private void btnIP_Clicked(object sender, RoutedEventArgs e)
+        {
+
+        }
+
+        private void btnDesktopScreen_Clicked(object sender, RoutedEventArgs e)
+        {
+
+        }
+
+        private void btnWebcamScreen_Clicked(object sender, RoutedEventArgs e)
+        {
+
+        }
+
+        private void btnAddUser_Clicked(object sender, RoutedEventArgs e)
+        {
+
+        }
+
+        private void btnRemoveUser_Clicked(object sender, RoutedEventArgs e)
+        {
+
+        }
+
+        private void btnCmdPrompt_Clicked(object sender, RoutedEventArgs e)
+        {
+
+        }
+
+        private void btnKeylogger_Clicked(object sender, ContextMenuEventArgs e)
+        {
+
+        }
+
+        private void btnKeyLogger_Clicked(object sender, RoutedEventArgs e)
+        {
+
+        }
+
+        private void btnTaskList_Clicked(object sender, RoutedEventArgs e)
+        {
+
+        }
+
+        private void btnDownload_Clicked(object sender, RoutedEventArgs e)
+        {
+
+        }
+
+        private void btnRDP_Clicked(object sender, RoutedEventArgs e)
+        {
+
+        }
+
+        private void btnShutdown_Clicked(object sender, RoutedEventArgs e)
+        {
+
+        }
+
+        private void btnCookies_Clicked(object sender, RoutedEventArgs e)
+        {
+
+        }
+
+        private void btnTelnet_Clicked(object sender, RoutedEventArgs e)
+        {
+
+        }
+
+        private void btnBsod_Clicked(object sender, RoutedEventArgs e)
+        {
+
+        }
+
+        private void btnReboot_Clicked(object sender, RoutedEventArgs e)
+        {
+
+        }
+
     }
 
 
