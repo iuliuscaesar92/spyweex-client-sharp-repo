@@ -27,6 +27,11 @@ namespace spyweex_client_wpf
             InitializeComponent();
         }
     }
+
+
+
+
+
 }
 
 namespace MyApp.Tools

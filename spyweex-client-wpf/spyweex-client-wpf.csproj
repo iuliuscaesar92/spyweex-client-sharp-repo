@@ -38,6 +38,8 @@
     <ApplicationIcon>heisenberg_app.ico</ApplicationIcon>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="presentationframework.aero" />
+    <Reference Include="PresentationFramework.Aero2" />
     <Reference Include="System" />
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
@@ -116,6 +118,22 @@
   </ItemGroup>
   <ItemGroup>
     <Resource Include="app_resources\cancel.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="app_resources\adduser.png" />
+    <Resource Include="app_resources\browse.png" />
+    <Resource Include="app_resources\cmd.png" />
+    <Resource Include="app_resources\download.png" />
+    <Resource Include="app_resources\keylogger.png" />
+    <Resource Include="app_resources\rdp.png" />
+    <Resource Include="app_resources\removeuser.png" />
+    <Resource Include="app_resources\restart.png" />
+    <Resource Include="app_resources\search.png" />
+    <Resource Include="app_resources\shutdown.png" />
+    <Resource Include="app_resources\telnet.jpg" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="app_resources\tasklist.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
