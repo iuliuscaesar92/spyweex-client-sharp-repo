@@ -18,7 +18,7 @@ namespace spyweex_client_wpf
         private readonly int _port;
         private volatile bool _shouldStop;
         private readonly object _syncLock = new object();
-        private readonly ConcurrentDictionary<IPEndPoint, WxhtpClient> _dictionaryWxhtpClients;
+        private ConcurrentDictionary<IPEndPoint, WxhtpClient> _dictionaryWxhtpClients;
 
         // Запуск сервера
         public WxhtpServiceServer(string ip, int port)
@@ -56,7 +56,7 @@ namespace spyweex_client_wpf
                     // tcpClient.Client.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.KeepAlive, true);
                     // add new WxhtpClient(tcpClient) to dictionary
                     var ipEndPoint = ((IPEndPoint)tcpClient.Client.RemoteEndPoint);
-                    WxhtpClient cl = new WxhtpClient(ref tcpClient);
+                    WxhtpClient cl = new WxhtpClient(ref tcpClient, ref _dictionaryWxhtpClients);
                     _dictionaryWxhtpClients.TryAdd(ipEndPoint, cl);
                 }
                 catch (Exception e)
@@ -99,7 +99,7 @@ namespace spyweex_client_wpf
             {
                 foreach (var item in _dictionaryWxhtpClients)
                 {
-                    item.Value.CloseClient();
+                    item.Value.Close();
                 }
                 _dictionaryWxhtpClients.Clear();
             }

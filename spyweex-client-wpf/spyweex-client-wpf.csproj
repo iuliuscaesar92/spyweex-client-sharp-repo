@@ -38,6 +38,9 @@
     <ApplicationIcon>heisenberg_app.ico</ApplicationIcon>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Mm.Wpf.Controls">
+      <HintPath>..\..\..\other_repo\Mm.Wpf.Controls\Mm.Wpf.Controls\bin\Release\Mm.Wpf.Controls.dll</HintPath>
+    </Reference>
     <Reference Include="presentationframework.aero" />
     <Reference Include="PresentationFramework.Aero2" />
     <Reference Include="PresentationFramework.Royale" />
@@ -81,13 +84,22 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="Console.xaml.cs">
+      <DependentUpon>Console.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Response.cs" />
     <Compile Include="Subscriber.cs" />
+    <Compile Include="Utils.cs" />
+    <Compile Include="ViewModel.cs" />
     <Compile Include="WxhtpClient.cs" />
     <Compile Include="WxhtpExceptions.cs" />
     <Compile Include="WxhtpMessageBuilder.cs" />
     <Compile Include="WxhtpServiceServer.cs" />
     <Compile Include="WxhtpStaticStrings.cs" />
+    <Page Include="Console.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>

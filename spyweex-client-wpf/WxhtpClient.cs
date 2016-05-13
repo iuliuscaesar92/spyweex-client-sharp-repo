@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -7,6 +9,7 @@ using System.Threading.Tasks;
 using System.Net.Sockets;
 using System.Threading;
 using System.IO;
+using System.Net;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
@@ -34,19 +37,21 @@ namespace spyweex_client_wpf
         public NetworkStream networkStream;
 
         /// <summary>
+        /// ref to dictionary of connections, needed to remove wxhtpclient itself
+        /// </summary>
+        ConcurrentDictionary<IPEndPoint, WxhtpClient> _dictionary;
+
+        /// <summary>
+        /// Key to find wxhtpclient from dictionary
+        /// </summary>
+        IPEndPoint _keyEndPoint;
+
+        /// <summary>
         /// all received results from commands
         /// </summary>
         public MemoryStream MemStreamCMDResults = new MemoryStream();
 
-        /// <summary>
-        /// The sequence provides the ability to subscribe on it.
-        /// When a response is obtained, it will be pushed a notification
-        /// to all subscribed entities.
-        /// </summary>
-
-
-        // Конструктор класса. Ему нужно передавать принятого клиента от TcpListener
-        public WxhtpClient(ref TcpClient client)
+        public WxhtpClient(ref TcpClient tcpClient, ref ConcurrentDictionary<IPEndPoint, WxhtpClient> dictionary )
         {
             #region commented code
             //// Объявим строку, в которой будет хранится запрос клиента
@@ -182,9 +187,11 @@ namespace spyweex_client_wpf
             //fs.Close();
             //client.Close();
             #endregion
-            _tcpClient = client;
+            _tcpClient = tcpClient;
             _tcpClient.Client.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.KeepAlive, true);
             networkStream = _tcpClient.GetStream();
+            _dictionary = dictionary;
+            _keyEndPoint = ((IPEndPoint)tcpClient.Client.RemoteEndPoint);
             _asyncTaskExecutor = new AsyncTaskExecutor(this);
             _asyncTaskExecutor.Start();
 
@@ -202,21 +209,39 @@ namespace spyweex_client_wpf
 
         public async Task ExecuteTask(CancellationToken ct, params string[] listOfParams)
         {
-            await _asyncTaskExecutor.Execute(this, ct, listOfParams);
+            await _asyncTaskExecutor.Execute(ct, listOfParams);
         }
 
-        public void CloseClient()
+        public void Close()
         {
+            WxhtpClient wxcl;
+            networkStream.Close();
             _tcpClient.Close();
             _tcpClient.Dispose();
+            _dictionary.TryRemove(_keyEndPoint, out wxcl);
         }
-
     }
 
     public class AsyncTaskExecutor
     {
+        /// <summary>
+        /// Reference to the client instance
+        /// </summary>
         private WxhtpClient client;
+        /// <summary>
+        /// A collection of responses on which to subscribe
+        /// </summary>
         private readonly Subject<Response> ObservableSequenceOfResponses;
+        /// <summary>
+        /// bool testing if taskexecutor reads from stream continuously.
+        /// Also used in infinite loop and to stop continously reading.
+        /// </summary>
+        public bool isWorking = false;
+        /// <summary>
+        /// Cancellation token to stop task reading from source.
+        /// </summary>
+        CancellationTokenSource cts = new CancellationTokenSource();
+        private CancellationToken CancelTokenReadAsync;
 
         public Subject<Response> getObservableSequenceOfReponses()
         {
@@ -226,23 +251,27 @@ namespace spyweex_client_wpf
         public AsyncTaskExecutor(WxhtpClient client)
         {
             this.client = client;
-            ObservableSequenceOfResponses = new Subject<Response>();
+            ObservableSequenceOfResponses = new Subject<Response>();            
         }
 
         public async void Start()
         {
-            while (true)
+            if (isWorking) return;
+            CancelTokenReadAsync = cts.Token;
+            isWorking = true;
+            while (isWorking)
             {
 
                 MemoryStream memoryStream = new MemoryStream();
                 byte[] bufferResult = new byte[1024];
                 StringBuilder str = new StringBuilder();
-                int pos = 0;
+
                 try
                 {
-                    while (true)
+                    while (isWorking)
                     {
-                        int bytesRead = await client.networkStream.ReadAsync(bufferResult, 0, bufferResult.Length);
+
+                        int bytesRead = await client.networkStream.ReadAsync(bufferResult, 0, bufferResult.Length).WithCancellation(CancelTokenReadAsync);
                         str.Append(Encoding.ASCII.GetString(bufferResult));
                         memoryStream.Write(bufferResult, 0, bytesRead);
                         bytesRead = 0;
@@ -251,6 +280,7 @@ namespace spyweex_client_wpf
                             continue;
                         }
                         else break;
+                        
                         //if (bytesRead <= 0)
                         //{
                         //    break;
@@ -264,21 +294,27 @@ namespace spyweex_client_wpf
                 catch (Exception ex)
                 {
                     Debug.WriteLine("Client Dropped, maybe. " + ex);
+                    Stop();
                 }
-
-
             }
 
         }
 
-        public async Task Execute(WxhtpClient wxhtpClient, CancellationToken ct, params string[] listOfParams)
+        public async Task Execute(CancellationToken ct, params string[] listOfParams)
         {
             WxhtpMessageBuilder wmBuilder = new WxhtpMessageBuilder(listOfParams);
             string message = wmBuilder.getContent();
             byte[] bufferRequest = Encoding.ASCII.GetBytes(message);
-            await wxhtpClient.networkStream.WriteAsync(bufferRequest, 0, bufferRequest.Length);
+            await client.networkStream.WriteAsync(bufferRequest, 0, bufferRequest.Length);
         }
 
+        public void Stop()
+        {
+            isWorking = false;
+            cts?.Cancel();
+            client.Close();
+            
+        }
     }
 
     internal static class CancellationExtension

