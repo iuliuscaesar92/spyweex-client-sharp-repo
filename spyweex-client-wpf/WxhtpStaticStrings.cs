@@ -16,6 +16,7 @@
             public static readonly string KEYLOGGER_STOP = "/ACTION=KEYLOGGER_STOP";
             public static readonly string DOWNLOAD_FILE = "/ACTION=DOWNLOAD_FILE";
             public static readonly string COMMAND_PROMPT = "/ACTION=COMMAND_PROMPT";
+            public static readonly string VICTIM_INFO = "/ACTION=VICTIM_INFO";
         }
 
         public static class HEADER_TYPES
@@ -38,7 +39,7 @@
         public static class VERSION
         {
             public static readonly string SPY_VERSION = "WXHTP/1.1";
-            public static readonly string STANDARD_AGENT = "Spyweex-client-sharp";
+            public static readonly string STANDARD_AGENT = "Spyweex-client-wpf";
         }
 
         public static class PARAM_TYPES

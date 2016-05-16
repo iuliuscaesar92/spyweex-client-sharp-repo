@@ -20,7 +20,7 @@ namespace spyweex_client_wpf
 {
     public class WxhtpClient
     {
-
+        
         /// <summary>
         /// the connected tcp client
         /// </summary>
@@ -39,7 +39,7 @@ namespace spyweex_client_wpf
         /// <summary>
         /// ref to dictionary of connections, needed to remove wxhtpclient itself
         /// </summary>
-        ConcurrentDictionary<IPEndPoint, WxhtpClient> _dictionary;
+        ConcurrentDictionary<IPEndPoint, WxhtpClient> _refdictionary;
 
         /// <summary>
         /// Key to find wxhtpclient from dictionary
@@ -190,11 +190,10 @@ namespace spyweex_client_wpf
             _tcpClient = tcpClient;
             _tcpClient.Client.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.KeepAlive, true);
             networkStream = _tcpClient.GetStream();
-            _dictionary = dictionary;
+            _refdictionary = dictionary;
             _keyEndPoint = ((IPEndPoint)tcpClient.Client.RemoteEndPoint);
             _asyncTaskExecutor = new AsyncTaskExecutor(this);
             _asyncTaskExecutor.Start();
-
         }
 
         public TcpClient getTcpClient()
@@ -218,7 +217,7 @@ namespace spyweex_client_wpf
             networkStream.Close();
             _tcpClient.Close();
             _tcpClient.Dispose();
-            _dictionary.TryRemove(_keyEndPoint, out wxcl);
+            _refdictionary.TryRemove(_keyEndPoint, out wxcl);
         }
     }
 

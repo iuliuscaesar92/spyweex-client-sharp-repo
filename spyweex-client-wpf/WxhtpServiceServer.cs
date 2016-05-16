@@ -7,6 +7,8 @@ using System.Threading.Tasks;
 using System.Diagnostics;
 using System.Net;
 using System.Net.Sockets;
+using System.Reactive.Subjects;
+using System.Security.Cryptography;
 
 
 namespace spyweex_client_wpf
@@ -19,6 +21,7 @@ namespace spyweex_client_wpf
         private volatile bool _shouldStop;
         private readonly object _syncLock = new object();
         private ConcurrentDictionary<IPEndPoint, WxhtpClient> _dictionaryWxhtpClients;
+        private readonly Subject<string> _observableSequenceOfConnections;
 
         // Запуск сервера
         public WxhtpServiceServer(string ip, int port)
@@ -27,6 +30,7 @@ namespace spyweex_client_wpf
             _port = port;
             _shouldStop = false;
             _dictionaryWxhtpClients = new ConcurrentDictionary<IPEndPoint, WxhtpClient>();
+            _observableSequenceOfConnections = new Subject<string>();
         }
 
         public void Start()
@@ -58,6 +62,7 @@ namespace spyweex_client_wpf
                     var ipEndPoint = ((IPEndPoint)tcpClient.Client.RemoteEndPoint);
                     WxhtpClient cl = new WxhtpClient(ref tcpClient, ref _dictionaryWxhtpClients);
                     _dictionaryWxhtpClients.TryAdd(ipEndPoint, cl);
+                    _observableSequenceOfConnections.OnNext(ipEndPoint.ToString());
                 }
                 catch (Exception e)
                 {
@@ -154,6 +159,11 @@ namespace spyweex_client_wpf
                 //destroy WxhtpClient
             }
 
+        }
+
+        public Subject<string> getObservableSequenceOfConnections()
+        {
+            return _observableSequenceOfConnections;
         }
     }
 

@@ -14,15 +14,15 @@
         WindowStartupLocation="CenterScreen"
         Title="Spy-weex" MinWidth="800" MinHeight="600" Background="#FF24282A" Foreground="#3DFFFFFF"
         Loaded="Window_Loaded">
-    
+
     <Window.Resources>
         <Style x:Key="BorderBrushStyle">
             <Setter Property="Control.BorderBrush" Value="#FFBFBCBC" />
             <Setter Property="Control.BorderThickness" Value="0,0.5,0,0.5" />
         </Style>
-        <SolidColorBrush x:Key="SelectedBackgroundBrush" Color="#FF80ABCF" />
+        <SolidColorBrush x:Key="SelectedBackgroundBrush" Color="#FF2A6EA6" />
         <SolidColorBrush x:Key="DisabledForegroundBrush" Color="#888" />
-        
+
         <!--ButtonStyle-->
         <Style x:Key="ButtonStyle" TargetType="Button">
             <Setter Property="Template">
@@ -77,10 +77,52 @@
             <Setter Property="Width" Value="auto"/>
             <Setter Property="Height" Value="25"/>
         </Style>
+        
+        <!-- ListView Style -->
+        <SolidColorBrush x:Key="ListBorder" Color="#828790"/>
+        <Style x:Key="MyListViewStyle" TargetType="{x:Type ListView}">
+            <Setter Property="Background" Value="{DynamicResource {x:Static SystemColors.WindowBrushKey}}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource ListBorder}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Foreground" Value="#FF042271"/>
+            <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Auto"/>
+            <Setter Property="ScrollViewer.VerticalScrollBarVisibility" Value="Auto"/>
+            <Setter Property="ScrollViewer.CanContentScroll" Value="True"/>
+            <Setter Property="ScrollViewer.PanningMode" Value="Both"/>
+            <Setter Property="Stylus.IsFlicksEnabled" Value="False"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type ListView}">
+                        <Themes:ListBoxChrome x:Name="Bd" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" 
+                                              Background="{TemplateBinding Background}" RenderMouseOver="{TemplateBinding IsMouseOver}" 
+                                              RenderFocused="{TemplateBinding IsKeyboardFocusWithin}" SnapsToDevicePixels="true">
+                            <ScrollViewer Padding="{TemplateBinding Padding}" Style="{DynamicResource {x:Static GridView.GridViewScrollViewerStyleKey}}">
+                                <ItemsPresenter SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"/>
+                            </ScrollViewer>
+                        </Themes:ListBoxChrome>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsEnabled" Value="false">
+                                <Setter Property="Background" TargetName="Bd" Value="{DynamicResource {x:Static SystemColors.ControlBrushKey}}"/>
+                            </Trigger>
+                            <MultiTrigger>
+                                <MultiTrigger.Conditions>
+                                    <Condition Property="IsGrouping" Value="true"/>
+                                    <Condition Property="VirtualizingPanel.IsVirtualizingWhenGrouping" Value="false"/>
+                                </MultiTrigger.Conditions>
+                                <Setter Property="ScrollViewer.CanContentScroll" Value="False"/>
+                            </MultiTrigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        
         <!--ListViewItemStyle-->
         <Style x:Key="ListViewItemStyle" TargetType="{x:Type ListViewItem}">
             <Setter Property="SnapsToDevicePixels" Value="true"/>
             <Setter Property="OverridesDefaultStyle" Value="true"/>
+            <Setter Property="Foreground" Value="#FF79FF65"/>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="{x:Type ListBoxItem}">
@@ -99,6 +141,16 @@
                 </Setter.Value>
             </Setter>
         </Style>
+
+        <!--Scroll bar Style-->
+        <Style x:Name="myScrollViewStyle" TargetType="{x:Type ScrollViewer}">
+            <Style.Triggers>
+                <Trigger Property="IsEnabled" Value="false">
+                    <Setter Property="Foreground" Value="{DynamicResource {x:Static SystemColors.GrayTextBrushKey}}"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
 
         <!--ToolBar Template Copy-->
         <SolidColorBrush x:Key="ToolBarHorizontalBackground" Color="#FFEEF5FD"/>
@@ -227,7 +279,7 @@
                                     <Themes:SystemDropShadowChrome x:Name="Shdw" Color="Transparent">
                                         <Border x:Name="ToolBarSubMenuBorder" BorderBrush="{StaticResource ToolBarMenuBorder}" BorderThickness="1" Background="{StaticResource ToolBarSubMenuBackground}" RenderOptions.ClearTypeHint="Enabled">
                                             <ToolBarOverflowPanel x:Name="PART_ToolBarOverflowPanel" KeyboardNavigation.DirectionalNavigation="Cycle" FocusVisualStyle="{x:Null}" Focusable="true" Margin="2" SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" KeyboardNavigation.TabNavigation="Cycle" WrapWidth="200"/>
-                                        
+
                                         </Border>
                                     </Themes:SystemDropShadowChrome>
                                 </Popup>
@@ -392,7 +444,8 @@
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="0.3*"/>
             </Grid.ColumnDefinitions>
-            <ListView x:Name="SessionListView" SelectedItem="{Binding SelectedSession, Mode=TwoWay}" Grid.Column="1" Margin="0" Background="#FF24282A" >
+            <ListView x:Name="SessionListView" SelectedItem="{Binding SelectedSession, Mode=TwoWay}" 
+                      SelectedIndex="0" Grid.Column="1" Margin="0" Background="#FF24282A" Style="{DynamicResource MyListViewStyle}">
 
                 <!--<Border x:Name="Border" CornerRadius="10" BorderThickness="2" Background="#FF505050" Padding="2" SnapsToDevicePixels="true" RenderOptions.EdgeMode="Aliased">
                     <Border.BorderBrush>
@@ -429,9 +482,16 @@
                         <GridViewColumn Header="Privileges" DisplayMemberBinding="{Binding Privileges}" Width="70"/>
                         <GridViewColumn Header="OS" DisplayMemberBinding="{Binding OS}" Width="100"/>
                         <GridViewColumn Header="Uptime" DisplayMemberBinding="{Binding Uptime}" Width="100"/>
-                        <GridViewColumn Header="Country" DisplayMemberBinding="{Binding Country}" Width="100"/>
                         <GridViewColumn Header="Cam" DisplayMemberBinding="{Binding Cam}" Width="50"/>
                         <GridViewColumn Header="Install Date" DisplayMemberBinding="{Binding InstallDate}" Width="100"/>
+                        <GridViewColumn Header="Country" DisplayMemberBinding="{Binding Country}" Width="100"/>
+                        <GridViewColumn Header="Region Name" DisplayMemberBinding="{Binding RegionName}" Width="100"/>
+                        <GridViewColumn Header="City" DisplayMemberBinding="{Binding City}" Width="100"/>
+                        <GridViewColumn Header="ISP" DisplayMemberBinding="{Binding Isp}" Width="100"/>
+                        <GridViewColumn Header="Coords" DisplayMemberBinding="{Binding Coords}" Width="100"/>
+                        <GridViewColumn Header="Zip" DisplayMemberBinding="{Binding Zip}" Width="100"/>
+
+
                     </GridView>
                 </ListView.View>
             </ListView>
@@ -472,13 +532,13 @@
 
                                 <StackPanel Orientation="Horizontal">
                                     <Label x:Name="In" Content="In:" Foreground="AliceBlue"  HorizontalAlignment="Center" Margin="0" Grid.Row="2" VerticalAlignment="Center"/>
-                                    <TextBox x:Name="txtBoxIn" Height="12" Background="#24282A"  IsReadOnly="True" HorizontalAlignment="Left" Width="90" Margin="10,0,0,0"/>
+                                    <TextBox x:Name="txtBoxIn" Text ="{Binding Path=SelectedSession.Incoming}" Foreground="AliceBlue" Height="20" Background="#24282A"  IsReadOnly="True" HorizontalAlignment="Left" Width="90" Margin="10,0,0,0"/>
                                     <Label x:Name="inSizeUnits" Content="KiB" Foreground="AliceBlue"  HorizontalAlignment="Center" Margin="0" Grid.Row="2" VerticalAlignment="Center"/>
 
                                 </StackPanel>
                                 <StackPanel Orientation="Horizontal">
                                     <Label x:Name="Out" Content="Out:" Foreground="AliceBlue"  HorizontalAlignment="Center" Margin="0" Grid.Row="2" VerticalAlignment="Center"/>
-                                    <TextBox x:Name="txtBoxOut" Height="12" Background="#24282A"  IsReadOnly="True"  HorizontalAlignment="Left" Width="90"/>
+                                    <TextBox x:Name="txtBoxOut" Text ="{Binding Path=SelectedSession.Outgoing}" Foreground="AliceBlue" Height="20" Background="#24282A"  IsReadOnly="True"  HorizontalAlignment="Left" Width="90"/>
                                     <Label x:Name="outSizeUnits" Content="B" Foreground="AliceBlue"  HorizontalAlignment="Center" Margin="0" Grid.Row="2" VerticalAlignment="Center"/>
 
                                 </StackPanel>

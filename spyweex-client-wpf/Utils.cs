@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Net.NetworkInformation;
 using System.Net.Sockets;
 using System.Text;
@@ -57,5 +58,18 @@ namespace spyweex_client_wpf
                 encoder.Save(stream);
             }
         }
+
+        public static IPEndPoint ParseIPEndpoint(string ipEndPoint)
+        {
+            int ipAddressLength = ipEndPoint.LastIndexOf(':');
+            return new IPEndPoint(
+                IPAddress.Parse(ipEndPoint.Substring(0, ipAddressLength)),
+                Convert.ToInt32(ipEndPoint.Substring(ipAddressLength + 1)));
+        }
+
+        //public static Tuple<string, string, string> GetGeoInfo()
+        //{
+
+        //}
     }
 }

