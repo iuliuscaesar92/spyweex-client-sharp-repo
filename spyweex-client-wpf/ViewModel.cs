@@ -74,7 +74,8 @@ namespace spyweex_client_wpf
     public class Session : INotifyPropertyChanged
     {
         public string ID { get; set; }
-        public string IP { get; set; }
+        public string WANIP { get; set; }
+        public string LOCALIP { get; set; }
         public string Username { get; set; }
         public string ComputerName { get; set; }
         public string Privileges { get; set; }
@@ -101,7 +102,7 @@ namespace spyweex_client_wpf
         public Session(string ID, string IP)
         {
             this.ID = ID;
-            this.IP = IP;            
+            this.WANIP = IP;            
         }
 
         public int Incoming

