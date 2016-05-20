@@ -47,17 +47,14 @@ namespace spyweex_client_wpf
         /// </summary>
         IPEndPoint _keyEndPoint;
 
-        /// <summary>
-        /// all received results from commands
-        /// </summary>
-        public MemoryStream MemStreamCMDResults = new MemoryStream();
+        ViewModel _viewModel;
 
         /// <summary>
         /// Verifies if the console is attached or not
         /// </summary>
         public bool isConsoleAttached = false;
 
-        public WxhtpClient(ref TcpClient tcpClient, ref ConcurrentDictionary<IPEndPoint, WxhtpClient> dictionary )
+        public WxhtpClient(ref TcpClient tcpClient, ref ConcurrentDictionary<IPEndPoint, WxhtpClient> dictionary, ViewModel vm)
         {
             #region commented code
             //// Объявим строку, в которой будет хранится запрос клиента
@@ -194,6 +191,7 @@ namespace spyweex_client_wpf
             //client.Close();
             #endregion
             _tcpClient = tcpClient;
+            _viewModel = vm;
             _tcpClient.Client.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.KeepAlive, true);
             networkStream = _tcpClient.GetStream();
             _refdictionary = dictionary;
@@ -220,10 +218,12 @@ namespace spyweex_client_wpf
         public void Close()
         {
             WxhtpClient wxcl;
+            _viewModel.TryRemoveSession(_tcpClient.Client.RemoteEndPoint.ToString());
             networkStream.Close();
             _tcpClient.Close();
             _tcpClient.Dispose();
             _refdictionary.TryRemove(_keyEndPoint, out wxcl);
+
         }
     }
 
@@ -278,8 +278,7 @@ namespace spyweex_client_wpf
                         int bytesRead;
                         try
                         {
-                            bytesRead = await client.networkStream.ReadAsync(bufferResult, 0, bufferResult.Length).
-                                WithCancellation(CancelTokenReadAsync);
+                            bytesRead = await client.networkStream.ReadAsync(bufferResult, 0, bufferResult.Length);
                             str.Append(Encoding.ASCII.GetString(bufferResult));
                             memoryStream.Write(bufferResult, 0, bytesRead);
                             bytesRead = 0;
@@ -325,8 +324,7 @@ namespace spyweex_client_wpf
         {
             isWorking = false;
             cts?.Cancel();
-            client.Close();
-            
+            client.Close();      
         }
     }
 

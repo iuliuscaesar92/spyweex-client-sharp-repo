@@ -44,6 +44,17 @@ namespace spyweex_client_wpf
             }
         }
 
+        public void TryRemoveSession(string ip)
+        {
+            foreach (var s in sessions)
+            {
+                if (s.WANIP.Equals(ip))
+                {
+                    sessions.Remove(s);
+                }
+            }
+        }
+
         //public int Incoming
         //{
         //    get { return SelectedSession.Incoming; }
@@ -89,7 +100,6 @@ namespace spyweex_client_wpf
         public string Isp { get; set; }
         public string Coords { get; set; }
         public string Zip { get; set; }
-
 
         private int incoming;
         private int outgoing;

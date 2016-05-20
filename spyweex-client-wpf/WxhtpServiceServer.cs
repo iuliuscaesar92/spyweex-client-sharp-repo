@@ -22,14 +22,16 @@ namespace spyweex_client_wpf
         private readonly object _syncLock = new object();
         private ConcurrentDictionary<IPEndPoint, WxhtpClient> _dictionaryWxhtpClients;
         private readonly Subject<string> _observableSequenceOfConnections;
+        private ViewModel _viewModel;
 
         // Запуск сервера
-        public WxhtpServiceServer(string ip, int port)
+        public WxhtpServiceServer(string ip, int port, ViewModel vm)
         {
             _localAddr = IPAddress.Parse(ip);
             _port = port;
             _shouldStop = false;
             _dictionaryWxhtpClients = new ConcurrentDictionary<IPEndPoint, WxhtpClient>();
+            _viewModel = vm;
             _observableSequenceOfConnections = new Subject<string>();
         }
 
@@ -60,7 +62,7 @@ namespace spyweex_client_wpf
                     // tcpClient.Client.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.KeepAlive, true);
                     // add new WxhtpClient(tcpClient) to dictionary
                     var ipEndPoint = ((IPEndPoint)tcpClient.Client.RemoteEndPoint);
-                    WxhtpClient cl = new WxhtpClient(ref tcpClient, ref _dictionaryWxhtpClients);
+                    WxhtpClient cl = new WxhtpClient(ref tcpClient, ref _dictionaryWxhtpClients, _viewModel);
                     _dictionaryWxhtpClients.TryAdd(ipEndPoint, cl);
                     _observableSequenceOfConnections.OnNext(ipEndPoint.ToString());
                 }
