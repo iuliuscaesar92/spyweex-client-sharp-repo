@@ -1326,7 +1326,7 @@
                         </Button>
 
                         <Button x:Name="btnKeyLoggerWithIcon" Margin="0,0,0,5" Width="64" Height="64" Background="#24282A" BorderBrush="#00707070" Click="btnKeyLogger_Clicked">
-                            <Image Source="app_resources/keylogger.png" Height="64" Width="64" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center" ContextMenuClosing="btnKeylogger_Clicked"/>
+                            <Image Source="app_resources/keylogger.png" Height="64" Width="64" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center" ContextMenuClosing="btnKeyLogger_Clicked"/>
                         </Button>
 
                         <Button x:Name="btnTaskList" Margin="0,0,0,5" Width="64" Height="64" Background="#24282A" BorderBrush="#00707070" Click="btnTaskList_Clicked">
@@ -1349,7 +1349,7 @@
 
                     <StackPanel  x:Name="StackPanelLeftButtons" Grid.Column="0" Grid.Row="1" MinHeight="80" VerticalAlignment="Top" Margin="0,15,0,0">
                         <Button x:Name="btnCookies" Content="Cookies" Style="{StaticResource ButtonStyle}" HorizontalContentAlignment="Stretch" VerticalAlignment="Top" Margin="0,5,0,0" Click="btnCookies_Clicked"/>
-                        <Button x:Name="btnKeylogger" Content="Keylogger" Style="{StaticResource ButtonStyle}" HorizontalContentAlignment="Stretch" VerticalAlignment="Top" Margin="0,5,0,0" Click="btnKeyLogger_Clicked"/>
+                        <Button x:Name="btnGeo" Content="Gmaps" Style="{StaticResource ButtonStyle}" HorizontalContentAlignment="Stretch" VerticalAlignment="Top" Margin="0,5,0,0" Click="btnGeo_Clicked"/>
                         <Button x:Name="btnTelnet" Content="Telnet" Style="{StaticResource ButtonStyle}" HorizontalContentAlignment="Stretch" VerticalAlignment="Top" Margin="0,5,0,0" Click="btnTelnet_Clicked"/>
                         <Button x:Name="btnBsod" Content="BSoD" Style="{StaticResource ButtonStyle}" HorizontalContentAlignment="Stretch" VerticalAlignment="Top" Margin="0,5,0,0" Click="btnBsod_Clicked"/>
                         <Button x:Name="btnReboot" Content="Reboot" Style="{StaticResource ButtonStyle}" HorizontalContentAlignment="Stretch" VerticalAlignment="Top" Margin="0,5,0,0" Click="btnReboot_Clicked"/>

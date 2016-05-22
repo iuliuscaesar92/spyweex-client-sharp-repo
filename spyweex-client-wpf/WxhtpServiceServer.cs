@@ -43,9 +43,11 @@ namespace spyweex_client_wpf
             Debug.WriteLine("WxhtpServiceServer Started Succesfully");
         }
 
-        public async Task Stop()
+        //public async Task Stop()
+        public void Stop()
         {
-            await RequestStop();
+            //await RequestStop();
+            RequestStop();
         }
 
         public async Task Run()
@@ -75,12 +77,13 @@ namespace spyweex_client_wpf
             return;
         }
 
-        private async Task RequestStop()
+        //private async Task RequestStop()
+        private void RequestStop()
         {
-            await Task.Run(() =>
-            {
-                try
-                {
+            //await Task.Run(() =>
+            //{
+            //    try
+            //    {
                     _shouldStop = true;
                     if (_listener != null)
                     {
@@ -91,12 +94,12 @@ namespace spyweex_client_wpf
                         CloseRemoveClients();
                     }
                     Debug.WriteLine("WxhtpServiceServer Stopped Succesfully");
-                }
-                catch (Exception e)
-                {
-                    Debug.WriteLine(e.Message);
-                }
-            });
+            //    }
+            //    catch (Exception e)
+            //    {
+            //        Debug.WriteLine(e.Message);
+            //    }
+            //});
 
         }
 
