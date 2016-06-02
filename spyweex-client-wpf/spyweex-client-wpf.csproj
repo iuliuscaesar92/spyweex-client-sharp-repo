@@ -89,7 +89,13 @@
       <DependentUpon>Console.xaml</DependentUpon>
     </Compile>
     <Compile Include="Response.cs" />
-    <Compile Include="Subscriber.cs" />
+    <Compile Include="Subscribers\CmdExecListener.cs" />
+    <Compile Include="Subscribers\ConnectionInfoListener.cs" />
+    <Compile Include="Subscribers\ConnectionListener.cs" />
+    <Compile Include="Subscribers\DesktopScreenListener.cs" />
+    <Compile Include="Subscribers\ISubscriber.cs" />
+    <Compile Include="Subscribers\KeyloggerListener.cs" />
+    <Compile Include="Subscribers\WebCamPicListener.cs" />
     <Compile Include="Utils.cs" />
     <Compile Include="ViewModel.cs" />
     <Compile Include="WxhtpClient.cs" />

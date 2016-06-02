@@ -18,6 +18,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
 using Mm.Wpf.Controls;
 using spyweex_client_wpf.StaticStrings;
+using spyweex_client_wpf.Subscribers;
 
 namespace spyweex_client_wpf
 {

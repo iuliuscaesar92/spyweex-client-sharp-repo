@@ -46,7 +46,7 @@ namespace spyweex_client_wpf
 
         public void TryRemoveSession(string ip)
         {
-            foreach (var s in sessions)
+            foreach (var s in sessions.ToList())
             {
                 if (s.WANIP.Equals(ip))
                 {
