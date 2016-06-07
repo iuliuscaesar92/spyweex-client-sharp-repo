@@ -5,6 +5,7 @@ using System.Reactive.Concurrency;
 using System.Reactive.Linq;
 using System.Windows;
 using System.Windows.Media.Imaging;
+using System.Windows.Threading;
 
 namespace spyweex_client_wpf.Subscribers
 {
@@ -16,49 +17,53 @@ namespace spyweex_client_wpf.Subscribers
             isSubscribed = true;
             IDisposable idisp = wxhtpClient.GetAsyncTaskExecutor().
                 getObservableSequenceOfReponses().
-                ObserveOn(TaskPoolScheduler.Default).
+                ObserveOn(Scheduler.CurrentThread).
                 SkipWhile(response => !response.Action.Equals(StaticStrings.ACTION_TYPE.TAKE_DESKTOP_SCREEN)).
                 Subscribe(
                 response =>
                 {
                     Response resp = (Response)response;
-                    if (resp.Action.Equals(StaticStrings.ACTION_TYPE.TAKE_DESKTOP_SCREEN))
+                    
+                    using (MemoryStream byteStream = new MemoryStream(resp.content))
                     {
-                        using (MemoryStream byteStream = new MemoryStream(resp.content))
-                        {
-                            BitmapImage bi = new BitmapImage();
-                            bi.BeginInit();
-                            bi.CacheOption = BitmapCacheOption.OnLoad;
-                            bi.StreamSource = byteStream;
-                            bi.EndInit();
+                        BitmapImage bi = new BitmapImage();
+                        bi.BeginInit();
+                        bi.CacheOption = BitmapCacheOption.OnLoad;
+                        bi.StreamSource = byteStream;
+                        bi.EndInit();
+                        bi.Freeze();
 
-                            JpegBitmapEncoder encoder = new JpegBitmapEncoder();
-                            Guid photoID = System.Guid.NewGuid();
-                            String photolocation = photoID.ToString() + ".jpg";  //file name 
+                        JpegBitmapEncoder encoder = new JpegBitmapEncoder();
+                        Guid photoID = System.Guid.NewGuid();
+                        String photolocation = photoID.ToString() + ".jpg";  //file name 
 
-                            encoder.Frames.Add(BitmapFrame.Create(bi));
+                        // update thumbnail
+                        BitmapFrame biFrame = BitmapFrame.Create(bi);
+                        wxhtpClient._viewModel.SelectedSession.BiFrame = biFrame;
 
-                            using (var filestream = new FileStream(photolocation, FileMode.Create))
-                                encoder.Save(filestream);
+                        // save downloaded picture
+                        encoder.Frames.Add(biFrame);
+                        using (var filestream = new FileStream(photolocation, FileMode.Create))
+                            encoder.Save(filestream);
 
-                            byteStream.Close();
-                            Process.Start(photolocation);
+                        byteStream.Close();
+                        Process.Start(photolocation);
 
-                        }
-                        Debug.WriteLine("Task Completed");
                         UnsubscribeAsync();
+                        Debug.WriteLine("Task Completed");
                     }
                 },
                 err =>
                 {
                     Debug.WriteLine((Exception)err);
                     MessageBoxResult result = MessageBox.Show("Error occured in Desktop screen subscriber " + (Exception)err);
-                    UnsubscribeAsync();
+                    //UnsubscribeAsync();
                 }
 
                 );
             subscriberToken = idisp;
         }
+
     }
 
 }

@@ -6,6 +6,7 @@ using System.Linq;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Media.Imaging;
 
 namespace spyweex_client_wpf
 {
@@ -103,6 +104,7 @@ namespace spyweex_client_wpf
 
         private int incoming;
         private int outgoing;
+        private BitmapFrame bitmapFrame;
 
         public Session()
         {
@@ -113,6 +115,19 @@ namespace spyweex_client_wpf
         {
             this.ID = ID;
             this.WANIP = IP;            
+        }
+
+        public BitmapFrame BiFrame
+        {
+            get { return bitmapFrame; }
+            set
+            {
+                if (bitmapFrame != value)
+                {
+                    bitmapFrame = value;
+                    NotifyPropertyChanged("BiFrame");
+                }
+            }
         }
 
         public int Incoming

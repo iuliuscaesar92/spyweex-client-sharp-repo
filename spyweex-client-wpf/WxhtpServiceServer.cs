@@ -15,7 +15,7 @@ namespace spyweex_client_wpf
 {
     public class WxhtpServiceServer
     {
-        private TcpListener _listener; // Объект, принимающий TCP-клиентов
+        private TcpListener _listener;
         private readonly IPAddress _localAddr;
         private readonly int _port;
         private volatile bool _shouldStop;
@@ -24,7 +24,6 @@ namespace spyweex_client_wpf
         private readonly Subject<string> _observableSequenceOfConnections;
         private ViewModel _viewModel;
 
-        // Запуск сервера
         public WxhtpServiceServer(string ip, int port, ViewModel vm)
         {
             _localAddr = IPAddress.Parse(ip);
@@ -37,32 +36,32 @@ namespace spyweex_client_wpf
 
         public void Start()
         {
-            _listener = new TcpListener(_localAddr, _port); // Создаем "слушателя" для указанного порта
+            _listener = new TcpListener(_localAddr, _port);
             _listener.Start();
-            // Запускаем его
             Debug.WriteLine("WxhtpServiceServer Started Succesfully");
         }
 
-        //public async Task Stop()
         public void Stop()
         {
-            //await RequestStop();
-            RequestStop();
+            _shouldStop = true;
+            if (_listener != null)
+            {
+                _listener.Stop();
+            }
+            if (!_dictionaryWxhtpClients.IsEmpty)
+            {
+                CloseRemoveClients();
+            }
+            Debug.WriteLine("WxhtpServiceServer Stopped Succesfully");
         }
 
         public async Task Run()
         {
-            // В бесконечном цикле
             while (!_shouldStop)
             {
-                //Принимаем новых клиентов. После того, как клиент был принят, он передается в новый поток (ClientThread)
-                //с использованием пула потоков.
                 try
                 {
                     var tcpClient = await _listener.AcceptTcpClientAsync();
-
-                    // tcpClient.Client.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.KeepAlive, true);
-                    // add new WxhtpClient(tcpClient) to dictionary
                     var ipEndPoint = ((IPEndPoint)tcpClient.Client.RemoteEndPoint);
                     WxhtpClient cl = new WxhtpClient(ref tcpClient, ref _dictionaryWxhtpClients, _viewModel);
                     _dictionaryWxhtpClients.TryAdd(ipEndPoint, cl);
@@ -72,28 +71,26 @@ namespace spyweex_client_wpf
                 {
                     Debug.WriteLine("Exception in Run " + e.Message);
                 }
-
             }
             return;
         }
 
-        //private async Task RequestStop()
         private void RequestStop()
         {
             //await Task.Run(() =>
             //{
             //    try
             //    {
-                    _shouldStop = true;
-                    if (_listener != null)
-                    {
-                        _listener.Stop();
-                    }
-                    if (!_dictionaryWxhtpClients.IsEmpty)
-                    {
-                        CloseRemoveClients();
-                    }
-                    Debug.WriteLine("WxhtpServiceServer Stopped Succesfully");
+                    //_shouldStop = true;
+                    //if (_listener != null)
+                    //{
+                    //    _listener.Stop();
+                    //}
+                    //if (!_dictionaryWxhtpClients.IsEmpty)
+                    //{
+                    //    CloseRemoveClients();
+                    //}
+                    //Debug.WriteLine("WxhtpServiceServer Stopped Succesfully");
             //    }
             //    catch (Exception e)
             //    {

@@ -21,7 +21,7 @@ namespace spyweex_client_wpf
             return response;
         }
 
-        public Parser(ref MemoryStream memoryStream)
+        public Parser(MemoryStream memoryStream)
         {
             memStream = memoryStream;
         }
