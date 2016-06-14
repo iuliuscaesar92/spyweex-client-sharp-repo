@@ -96,6 +96,7 @@
     <Compile Include="Subscribers\DesktopScreenListener.cs" />
     <Compile Include="Subscribers\ISubscriber.cs" />
     <Compile Include="Subscribers\KeyloggerListener.cs" />
+    <Compile Include="Subscribers\ThumbnailListener.cs" />
     <Compile Include="Subscribers\WebCamPicListener.cs" />
     <Compile Include="Utils.cs" />
     <Compile Include="ViewModel.cs" />

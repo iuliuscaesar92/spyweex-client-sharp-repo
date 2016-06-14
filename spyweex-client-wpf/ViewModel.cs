@@ -102,6 +102,7 @@ namespace spyweex_client_wpf
         public string Coords { get; set; }
         public string Zip { get; set; }
 
+        private bool thumbnailChecked;
         private int incoming;
         private int outgoing;
         private BitmapFrame bitmapFrame;
@@ -116,6 +117,20 @@ namespace spyweex_client_wpf
             this.ID = ID;
             this.WANIP = IP;            
         }
+
+        public bool ThumbnailChecked
+        {
+            get { return thumbnailChecked; }
+            set
+            {
+                if (thumbnailChecked != value)
+                {
+                    thumbnailChecked = value;
+                    NotifyPropertyChanged("ThumbnailChecked");
+                }
+            }
+        }
+
 
         public BitmapFrame BiFrame
         {

