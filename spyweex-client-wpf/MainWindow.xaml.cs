@@ -294,9 +294,16 @@ namespace spyweex_client_wpf
 
         private void btnGeo_Clicked(object sender, RoutedEventArgs e)
         {
-            string coords = ((ViewModel) DataContext).SelectedSession.Coords;
-            string geo_uri = string.Format("https://www.google.ru/maps/place/{0},{1}/", coords.Split(',')[0], coords.Split(',')[1]);
-            System.Diagnostics.Process.Start(geo_uri);
+            try
+            {
+                string coords = ((ViewModel)DataContext).SelectedSession.Coords;
+                string geo_uri = string.Format("https://www.google.ru/maps/place/{0},{1}/", coords.Split(',')[0], coords.Split(',')[1]);
+                System.Diagnostics.Process.Start(geo_uri);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Exception in Geo Data.", ex.ToString());
+            }
         }
 
         private void btnTelnet_Clicked(object sender, RoutedEventArgs e)
@@ -329,7 +336,8 @@ namespace spyweex_client_wpf
             }
             catch (Exception ex)
             {
-                
+                MessageBox.Show("Exception in Thumbscreen save.", ex.ToString());
+                return;
             }
         }
 

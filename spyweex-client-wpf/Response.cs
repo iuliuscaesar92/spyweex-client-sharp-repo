@@ -25,5 +25,10 @@ namespace spyweex_client_wpf
         public Dictionary<string, string> headers;
 
         public byte[] content;
+
+        public override string ToString()
+        {
+            return $"StatusCode={StatusCode}; Tag={Tag.ToString()}; Action={Action}; WxhtpVersion={WxhtpVersion.ToString()}; Headers={headers.Values.ToArray()}; Content={content}";
+        }
     }
 }

@@ -25,7 +25,7 @@ namespace spyweex_client_wpf.Subscribers
                 response =>
                 {
 
-                    Encoding enc = Encoding.GetEncoding("utf-8");
+                    Encoding enc = Encoding.GetEncoding("iso-8859-1");
                     string data = enc.GetString(response.content);
 
                     var jsonReader = JsonReaderWriterFactory.CreateJsonReader(
@@ -34,7 +34,7 @@ namespace spyweex_client_wpf.Subscribers
 
                     IPEndPoint ipEndPoint = (IPEndPoint)wxhtpClient.getTcpClient().Client.RemoteEndPoint;
                     string ip = ipEndPoint.Address.ToString();
-                    var tupleOfGeoData = Utils.GetGeoInfo("89.28.51.5");
+                    var tupleOfGeoData = Utils.GetGeoInfo("54.194.13.11");
 
 
                     Session s = new Session

