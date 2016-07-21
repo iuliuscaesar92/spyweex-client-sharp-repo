@@ -34,7 +34,7 @@ namespace spyweex_client_wpf.Subscribers
 
                     IPEndPoint ipEndPoint = (IPEndPoint)wxhtpClient.getTcpClient().Client.RemoteEndPoint;
                     string ip = ipEndPoint.Address.ToString();
-                    var tupleOfGeoData = Utils.GetGeoInfo("54.194.13.11");
+                    var tupleOfGeoData = Utils.GetGeoInfo("81.180.72.61");
 
 
                     Session s = new Session
